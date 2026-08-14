@@ -1,4 +1,4 @@
-# Model Card — v1 Baseline Classifier (Week 2)
+# Model Card — v1 Baseline Classifier (Weeks 2-3)
 
 ## Summary
 
@@ -55,25 +55,47 @@ model). Not treated as a blocker for the Week 1 target, but worth tracking:
 - A candidate first fix if it persists: more aggressive augmentation specifically for these two
   classes, or a higher input resolution — not worth doing preemptively without field evidence.
 
-## Known limitations (carried over from `docs/dataset-card.md`)
+## TFLite quantization (Week 3)
+
+`ml/scripts/convert_tflite.py` wraps the trained Keras model with a preprocessing input layer
+(raw `uint8` [0, 255] in, matching camera output directly) and applies full integer (int8)
+post-training quantization, calibrated on 200 real training images. This resolves the
+preprocessing gap flagged in ADR 0004 — the exported model now takes raw camera bytes, no
+[-1, 1] scaling needs replicating in Dart. Decision details in
+`docs/adr/0005-tflite-int8-quantization.md`.
+
+| | Target (Section 8) | Result |
+|---|---|---|
+| Model size | <15MB | **2.63MB** |
+| Test accuracy | >85% | **95.20%** (int8) vs 96.12% (float) — 0.93pp drop, within the plan's <3% tolerance |
+| Inference latency | <2s | **~3ms mean** (see caveat below) |
+
+**Latency caveat**: benchmarked via `ml/scripts/benchmark_tflite.py` on this dev machine's CPU
+(single-threaded), *not* a physical low-cost Android device — Week 3's literal deliverable calls
+for on-device benchmarking, which isn't possible in this environment. ~3ms on an Apple M3 leaves
+enormous headroom under the 2s target even accounting for a low-cost phone being an order of
+magnitude slower, but this needs real-device confirmation (e.g. Android Studio's TFLite
+Benchmark Tool on a sub-$100 device) before the <2s claim is trusted for the pilot.
+
+## Known limitations
 
 - Trained and evaluated entirely on lab-conditions PlantVillage images — accuracy on real farmer
   phone photos (background clutter, variable lighting, partial leaf occlusion) is unmeasured
-  until Week 13-16 field data exists. Treat 96% as an upper bound, not an on-device expectation.
-- Preprocessing (`mobilenet_v2.preprocess_input`, scaling to [-1, 1]) is applied in the tf.data
-  pipeline (`ml/scripts/data.py`), not baked into the model graph — Week 3's TFLite conversion
-  needs to either embed this or replicate it in the Flutter app's capture pipeline. Flagged in
-  ADR 0004.
+  until Week 13-16 field data exists. Treat 95-96% as an upper bound, not an on-device expectation.
+- Inference latency is a CPU-proxy measurement, not physical-device — see caveat above.
 
 ## Reproducing
 
 ```bash
 cd ml
 source .venv/bin/activate
-python scripts/train.py --run-name v1        # ~66 min on CPU (M3)
+python scripts/train.py --run-name v1          # ~66 min on CPU (M3)
 python scripts/evaluate.py --run-name v1
+python scripts/convert_tflite.py --run-name v1
+python scripts/benchmark_tflite.py --run-name v1
+python scripts/evaluate_tflite.py --run-name v1
 ```
 
-Trained weights (`ml/models/v1/`) are not committed to git — regenerate via the above, or see
-`ml/models/v1/meta.json` / `ml/models/v1/eval/results.json` for full numeric results (also
-gitignored, reproducible from the two commands above).
+Trained weights and the `.tflite` file (`ml/models/v1/`) are not committed to git — regenerate
+via the above, or see `ml/models/v1/eval/*.json` for full numeric results (also gitignored,
+reproducible from the commands above).

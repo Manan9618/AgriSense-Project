@@ -68,6 +68,32 @@ def _decode_and_resize(filepath, label):
     return image, label
 
 
+def raw_examples(split: str, limit: int | None = None, seed: int = 42):
+    """Yields (uint8 HWC image, class_id str) pairs, resized but otherwise
+    unpreprocessed — no augmentation, no MobileNetV2 [-1, 1] scaling.
+
+    Used for TFLite conversion's representative dataset (needs raw
+    on-device-shaped input) and for comparing the quantized model's
+    predictions against the float Keras model on identical inputs.
+    """
+    import random
+
+    by_class = load_manifest_split(split)
+    filepaths, class_ids = [], []
+    for class_id, paths in by_class.items():
+        filepaths.extend(paths)
+        class_ids.extend([class_id] * len(paths))
+
+    pairs = list(zip(filepaths, class_ids, strict=True))
+    random.Random(seed).shuffle(pairs)
+    if limit is not None:
+        pairs = pairs[:limit]
+
+    for filepath, class_id in pairs:
+        image, _ = _decode_and_resize(filepath, 0)
+        yield tf.cast(image, tf.uint8).numpy(), class_id
+
+
 def make_dataset(split: str, batch_size: int = 32, shuffle_seed: int = 42) -> tf.data.Dataset:
     """Builds a preprocessed (image in [-1, 1], integer label) batched dataset.
 

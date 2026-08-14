@@ -29,6 +29,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] Class imbalance addressed via oversampling + augmentation (`ml/scripts/data.py`)
 - [x] Documented accuracy: **96.12% test accuracy** — see `docs/model-card.md`
 
+### Week 3 — TFLite Quantization & On-Device Test
+- [x] Converted to TFLite, full int8 quantization (`docs/adr/0005-tflite-int8-quantization.md`)
+- [x] Model size: **2.63MB** (target <15MB)
+- [x] Accuracy retention validated: **95.20%** quantized vs 96.12% float (0.93pp drop, within 3% tolerance)
+- [x] Latency benchmarked: ~3ms mean (CPU proxy — see caveat in `docs/model-card.md`; real Android device benchmarking still needed)
+
 ## Backend quickstart
 
 ```bash
