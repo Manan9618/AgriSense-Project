@@ -1,0 +1,16 @@
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+extend-exclude = "migrations/"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations", "ml/data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]  # black owns line length
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E", "F", "I"]
