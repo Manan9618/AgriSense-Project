@@ -15,12 +15,19 @@ mobile/     Flutter app — camera capture, voice-first UI, offline sync (scaffo
 docs/       Class list, data model notes, ADRs, dataset card
 ```
 
-## Status: Week 1 — Foundations & Environment Setup
+## Status
 
+### Week 1 — Foundations & Environment Setup
 - [x] Repo scaffold, linting, CI skeleton
 - [x] Target disease/pest class list defined (`docs/classes.md`)
 - [x] Core data models designed: `Scan`, `Diagnosis`, `Advisory`
-- [x] Labeled dataset sourced (PlantVillage subset, see `ml/data/README.md`)
+- [x] Labeled dataset sourced (PlantVillage subset, see `docs/dataset-card.md`)
+
+### Week 2 — CV Model v1 (Training)
+- [x] Baseline classifier trained: MobileNetV2 transfer learning (`docs/adr/0004-mobilenetv2-transfer-learning.md`)
+- [x] Precision/recall per class evaluated on held-out test set
+- [x] Class imbalance addressed via oversampling + augmentation (`ml/scripts/data.py`)
+- [x] Documented accuracy: **96.12% test accuracy** — see `docs/model-card.md`
 
 ## Backend quickstart
 
@@ -40,4 +47,6 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python scripts/download_dataset.py
 python scripts/prepare_dataset.py
+python scripts/train.py --run-name v1       # ~66 min on CPU (Apple M3)
+python scripts/evaluate.py --run-name v1
 ```

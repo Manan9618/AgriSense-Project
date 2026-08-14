@@ -19,10 +19,13 @@ local_settings.py
 
 # ML / datasets — large binary data is not committed, only fetch scripts + manifests
 ml/data/
+ml/models/
+ml/reports/
 *.h5
 *.tflite
 *.ckpt
 *.pt
+*.keras
 
 # Flutter / Dart
 mobile/.dart_tool/
