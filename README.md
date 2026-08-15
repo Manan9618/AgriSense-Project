@@ -64,6 +64,14 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] `VoiceCommandSource` interface for speech-to-text, same interface-plus-fake pattern as the camera (`PhotoCaptureSource`) — real STT plugin usage untested here (no microphone/emulator), everything downstream of it (command parsing, navigation wiring) tested via a fake
 - [x] 17 new mobile tests (29 total, 1 self-skipping)
 
+### Week 9 — Offline-First Sync
+- [x] SQLite local cache (`mobile/lib/services/local_database.dart`) — **tested for real** against an actual SQLite database via `sqflite_common_ffi`, not fakes (same "redirect the real dependency" pattern as `tflite_flutter`)
+- [x] `ScanRepository` persists captured photos into stable app storage + SQLite under a client-generated UUID; `ScanHistoryProvider` is now a reactive view over the database instead of in-memory-only
+- [x] `OfflineSyncManager` + `POST /api/sync/scans/` (DRF) sync scans to the **Django backend** (not Firebase — a deliberate, documented deviation, see `docs/adr/0010-offline-sync-architecture.md`) with per-item retry and device-based identity (no farmer auth yet)
+- [x] Verified end-to-end: a real multipart upload to a live Django server creates a real `Scan` + `Diagnosis` + device `User`, confirmed idempotent on re-sync
+- [x] `HomeScreen`'s constructor, having reached 8 individually-threaded parameters, was consolidated into an `AppServices` bundle
+- [x] 21 new mobile tests (50 total, 2 self-skipping), 7 new backend tests (49 total)
+
 ## Backend quickstart
 
 ```bash

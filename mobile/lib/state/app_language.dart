@@ -85,6 +85,12 @@ class AppStrings {
     'voiceCommandHint': 'Tap the mic and say "scan", "prices", or "weather"',
     'voiceCommandNotRecognized':
         'Didn\'t catch a command — try "scan" or "prices".',
+    'pendingSync': '{count} scan(s) waiting to sync',
+    'syncNow': 'Sync Now',
+    'syncing': 'Syncing…',
+    'syncSuccess': 'Synced {count} scan(s)',
+    'syncPartialFailure': '{synced} synced, {failed} will retry later',
+    'allSynced': 'All scans synced',
   };
 
   static const _hi = {
@@ -121,6 +127,12 @@ class AppStrings {
     'listening': 'सुन रहा है…',
     'voiceCommandHint': 'माइक दबाएं और "स्कैन" या "भाव" बोलें',
     'voiceCommandNotRecognized': 'कमांड समझ नहीं आया — "स्कैन" या "भाव" कहें।',
+    'pendingSync': '{count} स्कैन सिंक होना बाकी है',
+    'syncNow': 'अभी सिंक करें',
+    'syncing': 'सिंक हो रहा है…',
+    'syncSuccess': '{count} स्कैन सिंक हो गए',
+    'syncPartialFailure': '{synced} सिंक हुए, {failed} बाद में फिर कोशिश होगी',
+    'allSynced': 'सभी स्कैन सिंक हो चुके हैं',
   };
 
   static const _gu = {
@@ -157,6 +169,12 @@ class AppStrings {
     'listening': 'સાંભળી રહ્યું છે…',
     'voiceCommandHint': 'માઇક દબાવો અને "સ્કેન" અથવા "ભાવ" બોલો',
     'voiceCommandNotRecognized': 'આદેશ સમજાયો નહીં — "સ્કેન" અથવા "ભાવ" કહો.',
+    'pendingSync': '{count} સ્કેન સિંક બાકી છે',
+    'syncNow': 'હમણાં સિંક કરો',
+    'syncing': 'સિંક થઈ રહ્યું છે…',
+    'syncSuccess': '{count} સ્કેન સિંક થયા',
+    'syncPartialFailure': '{synced} સિંક થયા, {failed} પછી ફરી પ્રયાસ થશે',
+    'allSynced': 'બધા સ્કેન સિંક થઈ ગયા',
   };
 
   static const Map<AppLanguage, AppStrings> _byLanguage = {

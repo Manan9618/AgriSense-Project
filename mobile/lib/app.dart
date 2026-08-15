@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+import 'app_services.dart';
 import 'screens/home_screen.dart';
 import 'services/advisory_service.dart';
 import 'services/camera_photo_capture_source.dart';
 import 'services/inference_service.dart';
+import 'services/local_database.dart';
+import 'services/offline_sync_manager.dart';
 import 'services/photo_capture_source.dart';
 import 'services/price_provider.dart';
+import 'services/scan_repository.dart';
 import 'services/speech_to_text_voice_command_source.dart';
+import 'services/sync_backend.dart';
 import 'services/tts_service.dart';
 import 'services/voice_command_source.dart';
 import 'state/language_provider.dart';
@@ -20,10 +27,10 @@ import 'theme/app_theme.dart';
 /// backend URL supplied here once one exists.
 const _devBackendBaseUrl = 'http://10.0.2.2:8000';
 
-/// Root widget. [photoCaptureSource], [priceProvider], [ttsService] and
-/// [voiceCommandSource] default to the real implementations but are
-/// overridable so widget tests can inject fakes instead of driving actual
-/// camera/microphone hardware or network calls.
+/// Root widget. Everything is overridable so widget tests can inject fakes
+/// instead of driving actual hardware/network calls; [database] and
+/// [syncBackend] default to null and are created for real inside
+/// [_AppRootState._load] since opening the real database is itself async.
 class AgriSenseApp extends StatelessWidget {
   AgriSenseApp({
     super.key,
@@ -31,6 +38,8 @@ class AgriSenseApp extends StatelessWidget {
     PriceProvider? priceProvider,
     TtsService? ttsService,
     VoiceCommandSource? voiceCommandSource,
+    this.database,
+    this.syncBackend,
   }) : priceProvider =
            priceProvider ?? HttpPriceProvider(baseUrl: _devBackendBaseUrl),
        ttsService = ttsService ?? TtsService(),
@@ -41,6 +50,8 @@ class AgriSenseApp extends StatelessWidget {
   final PriceProvider priceProvider;
   final TtsService ttsService;
   final VoiceCommandSource voiceCommandSource;
+  final LocalDatabase? database;
+  final SyncBackend? syncBackend;
 
   @override
   Widget build(BuildContext context) {
@@ -57,41 +68,45 @@ class AgriSenseApp extends StatelessWidget {
           priceProvider: priceProvider,
           ttsService: ttsService,
           voiceCommandSource: voiceCommandSource,
+          database: database,
+          syncBackend: syncBackend,
         ),
       ),
     );
   }
 }
 
-/// Bundle of everything loaded once at startup before HomeScreen can render.
-class _StartupServices {
-  const _StartupServices(this.inferenceService, this.advisoryService);
-
-  final InferenceService inferenceService;
-  final AdvisoryService advisoryService;
+Future<LocalDatabase> _openDefaultDatabase() async {
+  final documentsDir = await getApplicationDocumentsDirectory();
+  return LocalDatabase.open(p.join(documentsDir.path, 'agrisense.db'));
 }
 
-/// Loads the on-device model + bundled advisory content once at startup,
-/// then hands off to HomeScreen.
+/// Loads the on-device model, bundled advisory content, and local database
+/// once at startup — including replaying the DB's scan history into
+/// [ScanHistoryProvider] — then hands off to HomeScreen.
 class _AppRoot extends StatefulWidget {
   const _AppRoot({
     required this.photoCaptureSource,
     required this.priceProvider,
     required this.ttsService,
     required this.voiceCommandSource,
+    required this.database,
+    required this.syncBackend,
   });
 
   final PhotoCaptureSource photoCaptureSource;
   final PriceProvider priceProvider;
   final TtsService ttsService;
   final VoiceCommandSource voiceCommandSource;
+  final LocalDatabase? database;
+  final SyncBackend? syncBackend;
 
   @override
   State<_AppRoot> createState() => _AppRootState();
 }
 
 class _AppRootState extends State<_AppRoot> {
-  late final Future<_StartupServices> _servicesFuture;
+  late final Future<AppServices> _servicesFuture;
 
   @override
   void initState() {
@@ -99,15 +114,43 @@ class _AppRootState extends State<_AppRoot> {
     _servicesFuture = _load();
   }
 
-  static Future<_StartupServices> _load() async {
+  Future<AppServices> _load() async {
     final inferenceService = await InferenceService.load();
     final advisoryService = await AdvisoryService.load();
-    return _StartupServices(inferenceService, advisoryService);
+
+    final database = widget.database ?? await _openDefaultDatabase();
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final scanRepository = ScanRepository(
+      database: database,
+      storageDirectory: documentsDir,
+    );
+    final syncBackend =
+        widget.syncBackend ?? HttpSyncBackend(baseUrl: _devBackendBaseUrl);
+    final syncManager = OfflineSyncManager(
+      database: database,
+      backend: syncBackend,
+    );
+
+    if (mounted) {
+      await context.read<ScanHistoryProvider>().loadFromDatabase(database);
+    }
+
+    return AppServices(
+      inferenceService: inferenceService,
+      advisoryService: advisoryService,
+      photoCaptureSource: widget.photoCaptureSource,
+      priceProvider: widget.priceProvider,
+      ttsService: widget.ttsService,
+      voiceCommandSource: widget.voiceCommandSource,
+      localDatabase: database,
+      scanRepository: scanRepository,
+      syncManager: syncManager,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<_StartupServices>(
+    return FutureBuilder<AppServices>(
       future: _servicesFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -120,14 +163,7 @@ class _AppRootState extends State<_AppRoot> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        return HomeScreen(
-          inferenceService: snapshot.data!.inferenceService,
-          advisoryService: snapshot.data!.advisoryService,
-          photoCaptureSource: widget.photoCaptureSource,
-          priceProvider: widget.priceProvider,
-          ttsService: widget.ttsService,
-          voiceCommandSource: widget.voiceCommandSource,
-        );
+        return HomeScreen(services: snapshot.data!);
       },
     );
   }

@@ -4,15 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 
+import '../app_services.dart';
 import '../core/voice_command_parser.dart';
 import '../models/scan_record.dart';
 import '../screens/price_comparison_screen.dart';
-import '../services/advisory_service.dart';
-import '../services/inference_service.dart';
-import '../services/photo_capture_source.dart';
-import '../services/price_provider.dart';
-import '../services/tts_service.dart';
-import '../services/voice_command_source.dart';
 import '../state/language_provider.dart';
 import '../state/scan_history_provider.dart';
 import '../theme/app_theme.dart';
@@ -22,24 +17,12 @@ import '../widgets/recent_scan_tile.dart';
 import 'diagnosis_result_screen.dart';
 
 /// Home screen: capture flow entry point + recent scan history + voice
-/// navigation. Layout matches the project plan's sample UI (Section 6).
+/// navigation + offline sync status. Layout matches the project plan's
+/// sample UI (Section 6).
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-    super.key,
-    required this.inferenceService,
-    required this.advisoryService,
-    required this.photoCaptureSource,
-    required this.priceProvider,
-    required this.ttsService,
-    required this.voiceCommandSource,
-  });
+  const HomeScreen({super.key, required this.services});
 
-  final InferenceService inferenceService;
-  final AdvisoryService advisoryService;
-  final PhotoCaptureSource photoCaptureSource;
-  final PriceProvider priceProvider;
-  final TtsService ttsService;
-  final VoiceCommandSource voiceCommandSource;
+  final AppServices services;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -48,10 +31,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isProcessing = false;
   bool _isListening = false;
+  bool _isSyncing = false;
 
   Future<void> _startScan() async {
-    final path = await widget.photoCaptureSource.capturePhoto(context);
+    final path = await widget.services.photoCaptureSource.capturePhoto(context);
     if (path == null || !mounted) return;
+
+    final language = context.read<LanguageProvider>().language;
 
     setState(() => _isProcessing = true);
     ScanRecord? scan;
@@ -62,11 +48,11 @@ class _HomeScreenState extends State<HomeScreen> {
         throw const FormatException('Could not decode captured photo');
       }
 
-      final prediction = widget.inferenceService.classify(image);
-      scan = ScanRecord(
-        imagePath: path,
+      final prediction = widget.services.inferenceService.classify(image);
+      scan = await widget.services.scanRepository.saveScan(
+        capturedImagePath: path,
         prediction: prediction,
-        capturedAt: DateTime.now(),
+        language: language.code,
       );
     } finally {
       // Reset before navigating, not after: the spinner represents
@@ -84,8 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (_) => DiagnosisResultScreen(
           scan: result,
-          advisoryService: widget.advisoryService,
-          ttsService: widget.ttsService,
+          advisoryService: widget.services.advisoryService,
+          ttsService: widget.services.ttsService,
         ),
       ),
     );
@@ -96,8 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (_) => DiagnosisResultScreen(
           scan: scan,
-          advisoryService: widget.advisoryService,
-          ttsService: widget.ttsService,
+          advisoryService: widget.services.advisoryService,
+          ttsService: widget.services.ttsService,
         ),
       ),
     );
@@ -110,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isListening = true);
     String? recognized;
     try {
-      recognized = await widget.voiceCommandSource.listen(
+      recognized = await widget.services.voiceCommandSource.listen(
         localeId: language.sttLocale,
       );
     } finally {
@@ -125,8 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case VoiceIntent.prices:
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) =>
-                PriceComparisonScreen(priceProvider: widget.priceProvider),
+            builder: (_) => PriceComparisonScreen(
+              priceProvider: widget.services.priceProvider,
+            ),
           ),
         );
       case VoiceIntent.weather:
@@ -140,10 +127,36 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _syncNow() async {
+    final strings = context.read<LanguageProvider>().strings;
+    setState(() => _isSyncing = true);
+    try {
+      final summary = await widget.services.syncManager.syncPending();
+      if (!mounted) return;
+      await context.read<ScanHistoryProvider>().loadFromDatabase(
+        widget.services.localDatabase,
+      );
+      if (!mounted) return;
+      final message = summary.hadFailures
+          ? strings['syncPartialFailure']
+                .replaceAll('{synced}', '${summary.syncedCount}')
+                .replaceAll('{failed}', '${summary.failedCount}')
+          : strings['syncSuccess'].replaceAll(
+              '{count}',
+              '${summary.syncedCount}',
+            );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = context.watch<LanguageProvider>().strings;
     final scans = context.watch<ScanHistoryProvider>().scans;
+    final pendingCount = context.watch<ScanHistoryProvider>().pendingSyncCount;
 
     return Scaffold(
       appBar: AppBar(
@@ -193,6 +206,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          _SyncStatusBar(
+            pendingCount: pendingCount,
+            isSyncing: _isSyncing,
+            strings: strings,
+            onSyncNow: _syncNow,
+          ),
+          const SizedBox(height: 16),
           Text(
             strings['recentScans'],
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -221,8 +241,56 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: AppBottomNav(
         strings: strings,
-        priceProvider: widget.priceProvider,
+        priceProvider: widget.services.priceProvider,
       ),
+    );
+  }
+}
+
+class _SyncStatusBar extends StatelessWidget {
+  const _SyncStatusBar({
+    required this.pendingCount,
+    required this.isSyncing,
+    required this.strings,
+    required this.onSyncNow,
+  });
+
+  final int pendingCount;
+  final bool isSyncing;
+  final dynamic strings;
+  final VoidCallback onSyncNow;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = isSyncing
+        ? strings['syncing']
+        : (pendingCount == 0
+              ? strings['allSynced']
+              : strings['pendingSync'].replaceAll('{count}', '$pendingCount'));
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(
+              pendingCount == 0 ? Icons.cloud_done : Icons.cloud_upload,
+              size: 16,
+              color: pendingCount == 0 ? AppTheme.primaryGreen : Colors.black54,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ],
+        ),
+        if (pendingCount > 0)
+          TextButton(
+            onPressed: isSyncing ? null : onSyncNow,
+            child: Text(strings['syncNow']),
+          ),
+      ],
     );
   }
 }

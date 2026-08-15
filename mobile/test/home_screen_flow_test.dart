@@ -1,8 +1,4 @@
-import 'package:agrisense_ai/models/mandi_price.dart';
 import 'package:agrisense_ai/screens/home_screen.dart';
-import 'package:agrisense_ai/services/advisory_service.dart';
-import 'package:agrisense_ai/services/inference_service.dart';
-import 'package:agrisense_ai/services/tts_service.dart';
 import 'package:agrisense_ai/state/language_provider.dart';
 import 'package:agrisense_ai/state/scan_history_provider.dart';
 import 'package:flutter/material.dart';
@@ -10,20 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'fake_photo_capture_source.dart';
-import 'fake_price_provider.dart';
 import 'fake_voice_command_source.dart';
+import 'test_app_services.dart';
 
 /// End-to-end widget test: tap "Capture Photo" -> fake camera returns a
-/// real held-out test image -> real on-device inference runs -> app
-/// navigates to the Diagnosis Result screen showing the correct crop and
-/// condition. The only thing NOT exercised here is actual camera hardware
-/// (see mobile/README.md) — everything else in the Week 4 flow is real.
+/// real held-out test image -> real on-device inference runs -> real
+/// SQLite persistence (Week 9) -> app navigates to the Diagnosis Result
+/// screen showing the correct crop and condition. The only thing NOT
+/// exercised here is actual camera hardware (see mobile/README.md) —
+/// everything else in the flow is real.
 ///
 /// Wrapped in tester.runAsync(): the capture flow does genuine dart:io file
-/// I/O and a real FFI call into the TFLite interpreter, and testWidgets()'s
-/// default fake-async zone never lets that kind of real async work
-/// complete — it just hangs forever. runAsync() breaks out of the fake zone
-/// for real I/O/FFI, which is Flutter's documented fix for exactly this.
+/// I/O, real SQLite queries, and a real FFI call into the TFLite
+/// interpreter, and testWidgets()'s default fake-async zone never lets that
+/// kind of real async work complete — it just hangs forever. runAsync()
+/// breaks out of the fake zone for real I/O/FFI, which is Flutter's
+/// documented fix for exactly this.
 Future<void> pumpUntilFound(
   WidgetTester tester,
   Finder finder, {
@@ -55,9 +53,13 @@ void main() {
     'capture -> classify -> result screen shows the right diagnosis',
     (tester) async {
       await tester.runAsync(() async {
-        final inferenceService = await InferenceService.load();
-        addTearDown(inferenceService.close);
-        final advisoryService = await AdvisoryService.load();
+        final built = await buildTestAppServices(
+          photoCaptureSource: const FakePhotoCaptureSource(
+            'test/fixtures/sample_2_pepper_bell_healthy.jpg',
+          ),
+        );
+        addTearDown(built.services.inferenceService.close);
+        addTearDown(() => built.tempDir.delete(recursive: true));
 
         await tester.pumpWidget(
           MultiProvider(
@@ -65,20 +67,7 @@ void main() {
               ChangeNotifierProvider(create: (_) => LanguageProvider()),
               ChangeNotifierProvider(create: (_) => ScanHistoryProvider()),
             ],
-            child: MaterialApp(
-              home: HomeScreen(
-                inferenceService: inferenceService,
-                advisoryService: advisoryService,
-                photoCaptureSource: const FakePhotoCaptureSource(
-                  'test/fixtures/sample_2_pepper_bell_healthy.jpg',
-                ),
-                priceProvider: const FakePriceProvider(
-                  PriceComparisonResult(isSampleData: true, prices: []),
-                ),
-                ttsService: TtsService(),
-                voiceCommandSource: const FakeVoiceCommandSource(null),
-              ),
-            ),
+            child: MaterialApp(home: HomeScreen(services: built.services)),
           ),
         );
         await tester.pump();
@@ -109,15 +98,21 @@ void main() {
         await tester.pump();
 
         expect(find.text('Pepper (bell) — Healthy'), findsOneWidget);
+        // The scan is now persisted (Week 9) and unsynced.
+        expect(find.text('1 scan(s) waiting to sync'), findsOneWidget);
       });
     },
   );
 
   testWidgets('language selector switches UI chrome strings', (tester) async {
     await tester.runAsync(() async {
-      final inferenceService = await InferenceService.load();
-      addTearDown(inferenceService.close);
-      final advisoryService = await AdvisoryService.load();
+      final built = await buildTestAppServices(
+        photoCaptureSource: const FakePhotoCaptureSource(
+          'test/fixtures/sample_2_pepper_bell_healthy.jpg',
+        ),
+      );
+      addTearDown(built.services.inferenceService.close);
+      addTearDown(() => built.tempDir.delete(recursive: true));
 
       await tester.pumpWidget(
         MultiProvider(
@@ -125,20 +120,7 @@ void main() {
             ChangeNotifierProvider(create: (_) => LanguageProvider()),
             ChangeNotifierProvider(create: (_) => ScanHistoryProvider()),
           ],
-          child: MaterialApp(
-            home: HomeScreen(
-              inferenceService: inferenceService,
-              advisoryService: advisoryService,
-              photoCaptureSource: const FakePhotoCaptureSource(
-                'test/fixtures/sample_2_pepper_bell_healthy.jpg',
-              ),
-              priceProvider: const FakePriceProvider(
-                PriceComparisonResult(isSampleData: true, prices: []),
-              ),
-              ttsService: TtsService(),
-              voiceCommandSource: const FakeVoiceCommandSource(null),
-            ),
-          ),
+          child: MaterialApp(home: HomeScreen(services: built.services)),
         ),
       );
       await tester.pump();
@@ -151,6 +133,34 @@ void main() {
       await pumpFrames(tester);
 
       expect(find.text('તાજેતરના સ્કેન'), findsOneWidget);
+    });
+  });
+
+  testWidgets('saying "prices" navigates to the price comparison screen', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final built = await buildTestAppServices(
+        voiceCommandSource: const FakeVoiceCommandSource('show me prices'),
+      );
+      addTearDown(built.services.inferenceService.close);
+      addTearDown(() => built.tempDir.delete(recursive: true));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LanguageProvider()),
+            ChangeNotifierProvider(create: (_) => ScanHistoryProvider()),
+          ],
+          child: MaterialApp(home: HomeScreen(services: built.services)),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.mic_none));
+      await pumpUntilFound(tester, find.text('Price Comparison'));
+
+      expect(find.text('Price Comparison'), findsOneWidget);
     });
   });
 }

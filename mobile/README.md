@@ -43,17 +43,22 @@ device), you don't need this — the plugin resolves its native library normally
   **Speech-to-text is not** (`SpeechToTextVoiceCommandSource` — same hardware/emulator
   limitation as camera); tests inject `FakeVoiceCommandSource` instead. See
   `docs/adr/0009-voice-first-navigation.md`.
+- **SQLite (Week 9) is tested for real** — `local_database_test.dart`,
+  `scan_repository_test.dart`, `offline_sync_manager_test.dart` all run against a real SQLite
+  database (via `sqflite_common_ffi`'s in-memory/temp-file backend, the same
+  "redirect the real dependency for tests" pattern as `tflite_flutter`) and a real temp
+  filesystem — not fakes. Only the network call (`SyncBackend`) is faked in the default test
+  suite. See `docs/adr/0010-offline-sync-architecture.md`.
 
-## Verifying the price comparison screen against a real backend
+## Verifying against a real backend
 
-`test/price_provider_live_backend_test.dart` makes a genuine HTTP call to a running Django dev
-server rather than mocking the network layer — the strongest verification available for Week 7's
-backend<->app integration. It self-skips if no server is reachable, so normal `flutter test` runs
-don't need one. To actually exercise it:
+Two tests make genuine HTTP calls to a running Django dev server rather than mocking the network
+layer — the strongest verification available for the backend<->app integration (Weeks 7 and 9).
+Both self-skip if no server is reachable, so normal `flutter test` runs don't need one:
 
 ```bash
-cd backend && source .venv/bin/activate && python manage.py runserver 127.0.0.1:8000 &
-cd mobile && flutter test test/price_provider_live_backend_test.dart
+cd backend && source .venv/bin/activate && python manage.py migrate && python manage.py runserver 127.0.0.1:8000 &
+cd mobile && flutter test test/price_provider_live_backend_test.dart test/sync_backend_live_backend_test.dart
 ```
 
 ## Regenerating the bundled model
