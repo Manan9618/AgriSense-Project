@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models/scan_record.dart';
 import '../services/advisory_service.dart';
+import '../services/tts_service.dart';
 import '../state/app_language.dart';
 import '../state/language_provider.dart';
 import '../theme/app_theme.dart';
@@ -12,18 +13,20 @@ import '../widgets/stat_badge.dart';
 
 /// Diagnosis result screen — layout matches the project plan's sample UI
 /// (Section 6): confidence/crop/urgency badges, a detected-condition card,
-/// and a treatment section with real localized advice (Week 5's
-/// AdvisoryMapper content, bundled offline). TTS readback ("Hear Advice
-/// in...") is Week 8.
+/// a treatment section with real localized advice (Week 5's AdvisoryMapper
+/// content, bundled offline), and TTS readback via the "Hear Advice in
+/// {language}" button (Week 8).
 class DiagnosisResultScreen extends StatelessWidget {
   const DiagnosisResultScreen({
     super.key,
     required this.scan,
     required this.advisoryService,
+    required this.ttsService,
   });
 
   final ScanRecord scan;
   final AdvisoryService advisoryService;
+  final TtsService ttsService;
 
   Color _urgencyColor(String urgency) {
     switch (urgency) {
@@ -153,6 +156,20 @@ class DiagnosisResultScreen extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.black87,
                         height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => ttsService.speak(
+                        advisory.instructions,
+                        languageProvider.language,
+                      ),
+                      icon: const Icon(Icons.volume_up),
+                      label: Text(
+                        strings['hearAdviceIn'].replaceAll(
+                          '{lang}',
+                          languageProvider.language.displayName,
+                        ),
                       ),
                     ),
                   ],

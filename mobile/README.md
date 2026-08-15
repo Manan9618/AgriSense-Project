@@ -38,6 +38,11 @@ device), you don't need this — the plugin resolves its native library normally
   `CameraPhotoCaptureSource` — no Android emulator or physical device here). Structured behind
   the `PhotoCaptureSource` interface specifically so this is the *only* untested piece — verify
   it manually on a device before considering Week 4 fully done end-to-end.
+- **TTS (Week 8) is tested for real** — `tts_service_test.dart` mocks flutter_tts's actual
+  platform channel and asserts on the real call sequence, not a hand-rolled fake.
+  **Speech-to-text is not** (`SpeechToTextVoiceCommandSource` — same hardware/emulator
+  limitation as camera); tests inject `FakeVoiceCommandSource` instead. See
+  `docs/adr/0009-voice-first-navigation.md`.
 
 ## Verifying the price comparison screen against a real backend
 

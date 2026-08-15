@@ -7,6 +7,9 @@ import 'services/camera_photo_capture_source.dart';
 import 'services/inference_service.dart';
 import 'services/photo_capture_source.dart';
 import 'services/price_provider.dart';
+import 'services/speech_to_text_voice_command_source.dart';
+import 'services/tts_service.dart';
+import 'services/voice_command_source.dart';
 import 'state/language_provider.dart';
 import 'state/scan_history_provider.dart';
 import 'theme/app_theme.dart';
@@ -17,19 +20,27 @@ import 'theme/app_theme.dart';
 /// backend URL supplied here once one exists.
 const _devBackendBaseUrl = 'http://10.0.2.2:8000';
 
-/// Root widget. [photoCaptureSource] and [priceProvider] default to the
-/// real implementations but are overridable so widget tests can inject
-/// fakes instead of driving actual camera hardware / network calls.
+/// Root widget. [photoCaptureSource], [priceProvider], [ttsService] and
+/// [voiceCommandSource] default to the real implementations but are
+/// overridable so widget tests can inject fakes instead of driving actual
+/// camera/microphone hardware or network calls.
 class AgriSenseApp extends StatelessWidget {
   AgriSenseApp({
     super.key,
     this.photoCaptureSource = const CameraPhotoCaptureSource(),
     PriceProvider? priceProvider,
+    TtsService? ttsService,
+    VoiceCommandSource? voiceCommandSource,
   }) : priceProvider =
-           priceProvider ?? HttpPriceProvider(baseUrl: _devBackendBaseUrl);
+           priceProvider ?? HttpPriceProvider(baseUrl: _devBackendBaseUrl),
+       ttsService = ttsService ?? TtsService(),
+       voiceCommandSource =
+           voiceCommandSource ?? SpeechToTextVoiceCommandSource();
 
   final PhotoCaptureSource photoCaptureSource;
   final PriceProvider priceProvider;
+  final TtsService ttsService;
+  final VoiceCommandSource voiceCommandSource;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +55,8 @@ class AgriSenseApp extends StatelessWidget {
         home: _AppRoot(
           photoCaptureSource: photoCaptureSource,
           priceProvider: priceProvider,
+          ttsService: ttsService,
+          voiceCommandSource: voiceCommandSource,
         ),
       ),
     );
@@ -64,10 +77,14 @@ class _AppRoot extends StatefulWidget {
   const _AppRoot({
     required this.photoCaptureSource,
     required this.priceProvider,
+    required this.ttsService,
+    required this.voiceCommandSource,
   });
 
   final PhotoCaptureSource photoCaptureSource;
   final PriceProvider priceProvider;
+  final TtsService ttsService;
+  final VoiceCommandSource voiceCommandSource;
 
   @override
   State<_AppRoot> createState() => _AppRootState();
@@ -108,6 +125,8 @@ class _AppRootState extends State<_AppRoot> {
           advisoryService: snapshot.data!.advisoryService,
           photoCaptureSource: widget.photoCaptureSource,
           priceProvider: widget.priceProvider,
+          ttsService: widget.ttsService,
+          voiceCommandSource: widget.voiceCommandSource,
         );
       },
     );

@@ -2,6 +2,7 @@ import 'package:agrisense_ai/models/mandi_price.dart';
 import 'package:agrisense_ai/screens/home_screen.dart';
 import 'package:agrisense_ai/services/advisory_service.dart';
 import 'package:agrisense_ai/services/inference_service.dart';
+import 'package:agrisense_ai/services/tts_service.dart';
 import 'package:agrisense_ai/state/language_provider.dart';
 import 'package:agrisense_ai/state/scan_history_provider.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import 'fake_photo_capture_source.dart';
 import 'fake_price_provider.dart';
+import 'fake_voice_command_source.dart';
 
 /// End-to-end widget test: tap "Capture Photo" -> fake camera returns a
 /// real held-out test image -> real on-device inference runs -> app
@@ -73,6 +75,8 @@ void main() {
                 priceProvider: const FakePriceProvider(
                   PriceComparisonResult(isSampleData: true, prices: []),
                 ),
+                ttsService: TtsService(),
+                voiceCommandSource: const FakeVoiceCommandSource(null),
               ),
             ),
           ),
@@ -99,6 +103,7 @@ void main() {
           ),
           findsOneWidget,
         );
+        expect(find.text('Hear Advice in English'), findsOneWidget);
 
         await tester.pageBack();
         await tester.pump();
@@ -130,6 +135,8 @@ void main() {
               priceProvider: const FakePriceProvider(
                 PriceComparisonResult(isSampleData: true, prices: []),
               ),
+              ttsService: TtsService(),
+              voiceCommandSource: const FakeVoiceCommandSource(null),
             ),
           ),
         ),

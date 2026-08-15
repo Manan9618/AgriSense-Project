@@ -4,20 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 
+import '../core/voice_command_parser.dart';
 import '../models/scan_record.dart';
+import '../screens/price_comparison_screen.dart';
 import '../services/advisory_service.dart';
 import '../services/inference_service.dart';
 import '../services/photo_capture_source.dart';
 import '../services/price_provider.dart';
+import '../services/tts_service.dart';
+import '../services/voice_command_source.dart';
 import '../state/language_provider.dart';
 import '../state/scan_history_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/recent_scan_tile.dart';
 import 'diagnosis_result_screen.dart';
 
-/// Home screen: capture flow entry point + recent scan history. Layout
-/// matches the project plan's sample UI (Section 6).
+/// Home screen: capture flow entry point + recent scan history + voice
+/// navigation. Layout matches the project plan's sample UI (Section 6).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -25,12 +30,16 @@ class HomeScreen extends StatefulWidget {
     required this.advisoryService,
     required this.photoCaptureSource,
     required this.priceProvider,
+    required this.ttsService,
+    required this.voiceCommandSource,
   });
 
   final InferenceService inferenceService;
   final AdvisoryService advisoryService;
   final PhotoCaptureSource photoCaptureSource;
   final PriceProvider priceProvider;
+  final TtsService ttsService;
+  final VoiceCommandSource voiceCommandSource;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -38,6 +47,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isProcessing = false;
+  bool _isListening = false;
 
   Future<void> _startScan() async {
     final path = await widget.photoCaptureSource.capturePhoto(context);
@@ -75,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => DiagnosisResultScreen(
           scan: result,
           advisoryService: widget.advisoryService,
+          ttsService: widget.ttsService,
         ),
       ),
     );
@@ -86,9 +97,47 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => DiagnosisResultScreen(
           scan: scan,
           advisoryService: widget.advisoryService,
+          ttsService: widget.ttsService,
         ),
       ),
     );
+  }
+
+  Future<void> _handleVoiceCommand() async {
+    final language = context.read<LanguageProvider>().language;
+    final strings = context.read<LanguageProvider>().strings;
+
+    setState(() => _isListening = true);
+    String? recognized;
+    try {
+      recognized = await widget.voiceCommandSource.listen(
+        localeId: language.sttLocale,
+      );
+    } finally {
+      if (mounted) setState(() => _isListening = false);
+    }
+    if (!mounted || recognized == null) return;
+
+    final intent = parseVoiceCommand(recognized, language);
+    switch (intent) {
+      case VoiceIntent.scan:
+        await _startScan();
+      case VoiceIntent.prices:
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                PriceComparisonScreen(priceProvider: widget.priceProvider),
+          ),
+        );
+      case VoiceIntent.weather:
+      case VoiceIntent.community:
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Coming soon')));
+      case null:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(strings['voiceCommandNotRecognized'])),
+        );
+    }
   }
 
   @override
@@ -135,7 +184,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 : const Icon(Icons.camera_alt),
             label: Text(strings['capturePhoto']),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
+          Text(
+            _isListening ? strings['listening'] : strings['voiceCommandHint'],
+            style: TextStyle(
+              fontSize: 12,
+              color: _isListening ? AppTheme.primaryGreen : Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             strings['recentScans'],
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -155,6 +212,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   RecentScanTile(scan: scan, onTap: () => _openScan(scan)),
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _isListening ? null : _handleVoiceCommand,
+        tooltip: strings['voiceCommandHint'],
+        backgroundColor: _isListening ? Colors.grey : null,
+        child: Icon(_isListening ? Icons.mic : Icons.mic_none),
       ),
       bottomNavigationBar: AppBottomNav(
         strings: strings,

@@ -58,6 +58,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] **First backend<->app network integration**: `GET /api/prices/compare/` (DRF) + a mobile Price Comparison screen — verified with a **genuine end-to-end test** (real HTTP call to a live `manage.py runserver`, not mocked), which self-skips safely when no server is running
 - [x] 16 new backend tests (42 total), 4 new mobile tests (12 total)
 
+### Week 8 — Voice-First Navigation
+- [x] TTS advisory readback: "Hear Advice in {language}" button on the Diagnosis Result screen (`mobile/lib/services/tts_service.dart`) — **tested for real** by mocking flutter_tts's actual platform channel, not faked (`docs/adr/0009-voice-first-navigation.md`)
+- [x] Voice-command navigation for scan/prices (`mobile/lib/core/voice_command_parser.dart`): simple, transparent keyword matching across English/Hindi/Gujarati, no NLU/network call — offline-first like the rest of the app
+- [x] `VoiceCommandSource` interface for speech-to-text, same interface-plus-fake pattern as the camera (`PhotoCaptureSource`) — real STT plugin usage untested here (no microphone/emulator), everything downstream of it (command parsing, navigation wiring) tested via a fake
+- [x] 17 new mobile tests (29 total, 1 self-skipping)
+
 ## Backend quickstart
 
 ```bash

@@ -3,14 +3,42 @@
 /// which reads the same content/treatment_recommendations.json the backend
 /// seeds TreatmentRecommendation from.
 enum AppLanguage {
-  english(code: 'en', displayName: 'English'),
-  hindi(code: 'hi', displayName: 'हिन्दी'),
-  gujarati(code: 'gu', displayName: 'ગુજરાતી');
+  english(
+    code: 'en',
+    displayName: 'English',
+    ttsLocale: 'en-IN',
+    sttLocale: 'en_IN',
+  ),
+  hindi(
+    code: 'hi',
+    displayName: 'हिन्दी',
+    ttsLocale: 'hi-IN',
+    sttLocale: 'hi_IN',
+  ),
+  gujarati(
+    code: 'gu',
+    displayName: 'ગુજરાતી',
+    ttsLocale: 'gu-IN',
+    sttLocale: 'gu_IN',
+  );
 
-  const AppLanguage({required this.code, required this.displayName});
+  const AppLanguage({
+    required this.code,
+    required this.displayName,
+    required this.ttsLocale,
+    required this.sttLocale,
+  });
 
   final String code;
   final String displayName;
+
+  /// Locale flutter_tts expects (Week 8) — a full BCP-47-ish tag, not just
+  /// [code], since TTS engines need it to pick the right voice.
+  final String ttsLocale;
+
+  /// Locale speech_to_text expects (Week 8) — underscore-separated, per
+  /// Android's Locale convention.
+  final String sttLocale;
 }
 
 /// UI chrome strings, keyed by [AppLanguage]. Deliberately small and
@@ -52,6 +80,11 @@ class AppStrings {
     'noPricesFound': 'No prices found for this crop/location.',
     'perQuintal': '/quintal',
     'bestPrice': 'Best price',
+    'hearAdviceIn': 'Hear Advice in {lang}',
+    'listening': 'Listening…',
+    'voiceCommandHint': 'Tap the mic and say "scan", "prices", or "weather"',
+    'voiceCommandNotRecognized':
+        'Didn\'t catch a command — try "scan" or "prices".',
   };
 
   static const _hi = {
@@ -84,6 +117,10 @@ class AppStrings {
     'noPricesFound': 'इस फसल/स्थान के लिए कोई भाव नहीं मिला।',
     'perQuintal': '/क्विंटल',
     'bestPrice': 'सबसे अच्छा भाव',
+    'hearAdviceIn': '{lang} में सलाह सुनें',
+    'listening': 'सुन रहा है…',
+    'voiceCommandHint': 'माइक दबाएं और "स्कैन" या "भाव" बोलें',
+    'voiceCommandNotRecognized': 'कमांड समझ नहीं आया — "स्कैन" या "भाव" कहें।',
   };
 
   static const _gu = {
@@ -116,6 +153,10 @@ class AppStrings {
     'noPricesFound': 'આ પાક/સ્થાન માટે કોઈ ભાવ મળ્યો નથી.',
     'perQuintal': '/ક્વિન્ટલ',
     'bestPrice': 'શ્રેષ્ઠ ભાવ',
+    'hearAdviceIn': '{lang} માં સલાહ સાંભળો',
+    'listening': 'સાંભળી રહ્યું છે…',
+    'voiceCommandHint': 'માઇક દબાવો અને "સ્કેન" અથવા "ભાવ" બોલો',
+    'voiceCommandNotRecognized': 'આદેશ સમજાયો નહીં — "સ્કેન" અથવા "ભાવ" કહો.',
   };
 
   static const Map<AppLanguage, AppStrings> _byLanguage = {
