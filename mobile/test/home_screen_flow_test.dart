@@ -1,3 +1,4 @@
+import 'package:agrisense_ai/models/mandi_price.dart';
 import 'package:agrisense_ai/screens/home_screen.dart';
 import 'package:agrisense_ai/services/advisory_service.dart';
 import 'package:agrisense_ai/services/inference_service.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'fake_photo_capture_source.dart';
+import 'fake_price_provider.dart';
 
 /// End-to-end widget test: tap "Capture Photo" -> fake camera returns a
 /// real held-out test image -> real on-device inference runs -> app
@@ -68,6 +70,9 @@ void main() {
                 photoCaptureSource: const FakePhotoCaptureSource(
                   'test/fixtures/sample_2_pepper_bell_healthy.jpg',
                 ),
+                priceProvider: const FakePriceProvider(
+                  PriceComparisonResult(isSampleData: true, prices: []),
+                ),
               ),
             ),
           ),
@@ -121,6 +126,9 @@ void main() {
               advisoryService: advisoryService,
               photoCaptureSource: const FakePhotoCaptureSource(
                 'test/fixtures/sample_2_pepper_bell_healthy.jpg',
+              ),
+              priceProvider: const FakePriceProvider(
+                PriceComparisonResult(isSampleData: true, prices: []),
               ),
             ),
           ),

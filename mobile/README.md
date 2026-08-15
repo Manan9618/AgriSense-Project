@@ -39,6 +39,18 @@ device), you don't need this — the plugin resolves its native library normally
   the `PhotoCaptureSource` interface specifically so this is the *only* untested piece — verify
   it manually on a device before considering Week 4 fully done end-to-end.
 
+## Verifying the price comparison screen against a real backend
+
+`test/price_provider_live_backend_test.dart` makes a genuine HTTP call to a running Django dev
+server rather than mocking the network layer — the strongest verification available for Week 7's
+backend<->app integration. It self-skips if no server is reachable, so normal `flutter test` runs
+don't need one. To actually exercise it:
+
+```bash
+cd backend && source .venv/bin/activate && python manage.py runserver 127.0.0.1:8000 &
+cd mobile && flutter test test/price_provider_live_backend_test.dart
+```
+
 ## Regenerating the bundled model
 
 `assets/models/agrisense_v1_int8.tflite` and `class_names.json` are copied from `ml/models/v1/`

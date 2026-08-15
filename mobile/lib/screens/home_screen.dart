@@ -8,6 +8,7 @@ import '../models/scan_record.dart';
 import '../services/advisory_service.dart';
 import '../services/inference_service.dart';
 import '../services/photo_capture_source.dart';
+import '../services/price_provider.dart';
 import '../state/language_provider.dart';
 import '../state/scan_history_provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -23,11 +24,13 @@ class HomeScreen extends StatefulWidget {
     required this.inferenceService,
     required this.advisoryService,
     required this.photoCaptureSource,
+    required this.priceProvider,
   });
 
   final InferenceService inferenceService;
   final AdvisoryService advisoryService;
   final PhotoCaptureSource photoCaptureSource;
+  final PriceProvider priceProvider;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -153,7 +156,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: AppBottomNav(strings: strings),
+      bottomNavigationBar: AppBottomNav(
+        strings: strings,
+        priceProvider: widget.priceProvider,
+      ),
     );
   }
 }

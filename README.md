@@ -52,6 +52,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] `WeatherAdvisoryTool` rule engine (`backend/core/weather_advisory_tool.py`): rain-within-6h, good-spray-window, dry-spell-irrigate — localized into all 3 languages (`content/weather_advisory_templates.json`)
 - [x] 10 tests covering the rule engine (including rule-interaction and wind-exclusion edge cases) — backend-only this week, no API endpoint/mobile UI yet (see ADR 0007 for why)
 
+### Week 7 — Mandi Price Feed
+- [x] `MandiPriceProvider` abstraction + `AgmarknetProvider` (data.gov.in) + `SampleMandiPriceProvider` fallback when no API key is configured (`backend/core/price_provider.py`, `docs/adr/0008-price-comparator-and-first-api-endpoint.md`)
+- [x] `MandiPriceComparator` ranks nearby markets best-price-first (`backend/core/price_comparator.py`); "distress sale" price-gap advisory logic tested (10%+ gap threshold)
+- [x] **First backend<->app network integration**: `GET /api/prices/compare/` (DRF) + a mobile Price Comparison screen — verified with a **genuine end-to-end test** (real HTTP call to a live `manage.py runserver`, not mocked), which self-skips safely when no server is running
+- [x] 16 new backend tests (42 total), 4 new mobile tests (12 total)
+
 ## Backend quickstart
 
 ```bash

@@ -43,6 +43,15 @@ class AppStrings {
     'urgencyMedium': 'Medium',
     'urgencyHigh': 'High',
     'recommendedTreatment': 'Recommended Treatment',
+    'priceComparison': 'Price Comparison',
+    'selectCrop': 'Crop',
+    'state': 'State',
+    'district': 'District (optional)',
+    'comparePrices': 'Compare Prices',
+    'sampleDataWarning': 'Sample data — live market feed not yet connected.',
+    'noPricesFound': 'No prices found for this crop/location.',
+    'perQuintal': '/quintal',
+    'bestPrice': 'Best price',
   };
 
   static const _hi = {
@@ -66,6 +75,15 @@ class AppStrings {
     'urgencyMedium': 'मध्यम',
     'urgencyHigh': 'अधिक',
     'recommendedTreatment': 'अनुशंसित उपचार',
+    'priceComparison': 'भाव तुलना',
+    'selectCrop': 'फसल',
+    'state': 'राज्य',
+    'district': 'ज़िला (वैकल्पिक)',
+    'comparePrices': 'भाव तुलना करें',
+    'sampleDataWarning': 'नमूना डेटा — लाइव बाज़ार फ़ीड अभी जुड़ा नहीं है।',
+    'noPricesFound': 'इस फसल/स्थान के लिए कोई भाव नहीं मिला।',
+    'perQuintal': '/क्विंटल',
+    'bestPrice': 'सबसे अच्छा भाव',
   };
 
   static const _gu = {
@@ -89,6 +107,15 @@ class AppStrings {
     'urgencyMedium': 'મધ્યમ',
     'urgencyHigh': 'વધુ',
     'recommendedTreatment': 'ભલામણ કરેલ સારવાર',
+    'priceComparison': 'ભાવ સરખામણી',
+    'selectCrop': 'પાક',
+    'state': 'રાજ્ય',
+    'district': 'જિલ્લો (વૈકલ્પિક)',
+    'comparePrices': 'ભાવ સરખાવો',
+    'sampleDataWarning': 'નમૂના ડેટા — લાઇવ બજાર ફીડ હજુ જોડાયેલ નથી.',
+    'noPricesFound': 'આ પાક/સ્થાન માટે કોઈ ભાવ મળ્યો નથી.',
+    'perQuintal': '/ક્વિન્ટલ',
+    'bestPrice': 'શ્રેષ્ઠ ભાવ',
   };
 
   static const Map<AppLanguage, AppStrings> _byLanguage = {

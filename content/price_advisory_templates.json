@@ -1,0 +1,18 @@
+{
+  "_comment": "Template for core/price_comparator.py's maybe_create_price_advisory(). {placeholders} filled in with Python str.format().",
+  "better_price_available": {
+    "urgency": "medium",
+    "en": {
+      "title": "Better price nearby",
+      "body": "{market} is paying ₹{price}/quintal for {commodity} — {pct}% more than {worst_market} (₹{worst_price}/quintal). Worth checking before you sell."
+    },
+    "hi": {
+      "title": "पास में बेहतर भाव",
+      "body": "{market} में {commodity} का भाव ₹{price}/क्विंटल है — {worst_market} (₹{worst_price}/क्विंटल) से {pct}% ज़्यादा। बेचने से पहले जांच लें।"
+    },
+    "gu": {
+      "title": "નજીકમાં સારો ભાવ",
+      "body": "{market} માં {commodity} નો ભાવ ₹{price}/ક્વિન્ટલ છે — {worst_market} (₹{worst_price}/ક્વિન્ટલ) કરતાં {pct}% વધુ. વેચતા પહેલાં તપાસી લો."
+    }
+  }
+}
