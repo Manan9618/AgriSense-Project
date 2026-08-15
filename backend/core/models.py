@@ -149,3 +149,29 @@ class TreatmentRecommendation(models.Model):
 
     def __str__(self):
         return f"{self.class_id} ({self.language}): {self.title}"
+
+
+class SmsSession(models.Model):
+    """Tracks an in-progress SMS fallback conversation (Week 10,
+    SMSFallbackHandler component — docs/classes.md).
+
+    Twilio's SMS webhook is stateless — one HTTP POST per incoming
+    message — so the crop/symptom-menu state has to live somewhere between
+    messages. Keyed by phone number since that's the only stable identity
+    an SMS conversation has (no app account, no device id — a feature-phone
+    farmer has neither). Deleted once a diagnosis is delivered, so a new
+    text starts a fresh conversation rather than resuming a stale one.
+    """
+
+    class State(models.TextChoices):
+        NEED_CROP = "need_crop", "Waiting for crop selection"
+        NEED_SYMPTOM = "need_symptom", "Waiting for symptom selection"
+
+    phone_number = models.CharField(max_length=20, primary_key=True)
+    state = models.CharField(max_length=20, choices=State.choices, default=State.NEED_CROP)
+    crop_choice = models.CharField(max_length=1, blank=True)
+    language = models.CharField(max_length=10, default="en")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.phone_number} ({self.state})"

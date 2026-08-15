@@ -72,6 +72,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] `HomeScreen`'s constructor, having reached 8 individually-threaded parameters, was consolidated into an `AppServices` bundle
 - [x] 21 new mobile tests (50 total, 2 self-skipping), 7 new backend tests (49 total)
 
+### Week 10 — SMS/Voice Fallback
+- [x] **Fully tested, not just "real but unverifiable here"**: Twilio webhooks handle *incoming* SMS/calls, which needs zero API credentials (only outbound sends would) — the first external-service integration this project could exercise completely, see `docs/adr/0011-twilio-fallback-channels.md`
+- [x] SMS: two-question triage (crop, then symptom — 3 options each, per the plan's own non-literate-UX guidance) reusing Week 5's `TreatmentRecommendation` content; state tracked in `SmsSession` keyed by phone number (`backend/core/sms_fallback_handler.py`)
+- [x] Voice IVR: same triage, state carried via `<Gather>` action-URL query params instead of a session model (`POST /api/voice/webhook/`)
+- [x] 26 new backend tests (75 total) — the crop/symptom mapping, the full SMS state machine (happy paths, invalid input recovery, per-phone-number isolation), and both webhook views via simulated Twilio payloads
+
 ## Backend quickstart
 
 ```bash

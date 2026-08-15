@@ -1,19 +1,37 @@
 import os
 
 from django.contrib.auth import get_user_model
+from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from twilio.twiml.messaging_response import MessagingResponse
+from twilio.twiml.voice_response import Gather, VoiceResponse
 
+from core.fallback_diagnosis import (
+    CROP_CHOICES,
+    CROP_MENU_PROMPT,
+    SYMPTOM_CHOICES,
+    SYMPTOM_MENU_PROMPT,
+    class_for_choice,
+    get_treatment_text,
+)
 from core.models import Diagnosis, Scan
 from core.price_comparator import compare_prices
 from core.price_provider import AgmarknetProvider, SampleMandiPriceProvider
 from core.serializers import MandiPriceSerializer, ScanSyncSerializer
+from core.sms_fallback_handler import handle_sms_message
 
 User = get_user_model()
+
+VOICE_WELCOME_PROMPT = f"Welcome to AgriSense crop help. {CROP_MENU_PROMPT}"
+VOICE_UNRECOGNIZED_PREFIX = "Sorry, that was not a valid choice. "
+VOICE_NO_ADVICE_FOUND = "Sorry, we could not find advice for that right now. Goodbye."
 
 
 class PriceComparisonView(APIView):
@@ -89,3 +107,77 @@ class ScanSyncView(APIView):
             {"id": str(scan.id), "synced_at": scan.synced_at, "created": created},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
+
+
+@csrf_exempt
+@require_POST
+def sms_webhook(request: HttpRequest) -> HttpResponse:
+    """POST /api/sms/webhook/ — Twilio SMS webhook, SMSFallbackHandler's
+    entry point (Week 10). No API credentials needed to handle *incoming*
+    messages: Twilio calls this URL and expects TwiML XML back, which is
+    generated entirely locally (no outbound Twilio API call involved) —
+    see docs/adr/0011-twilio-fallback-channels.md.
+    """
+    from_number = request.POST.get("From", "")
+    body = request.POST.get("Body", "")
+
+    reply_text = handle_sms_message(from_number, body)
+
+    twiml = MessagingResponse()
+    twiml.message(reply_text)
+    return HttpResponse(str(twiml), content_type="text/xml")
+
+
+@csrf_exempt
+@require_POST
+def voice_webhook(request: HttpRequest) -> HttpResponse:
+    """POST /api/voice/webhook/?step=... — Twilio Voice webhook, IVR flow
+    (Week 10). No SmsSession-style persistence needed here: each
+    <Gather>'s `action` URL carries the already-collected choice forward
+    as a query parameter, so the URL chain itself is the state machine —
+    simpler than a session model for a flow this short.
+    """
+    step = request.GET.get("step", "crop")
+    digits = request.POST.get("Digits")
+    response = VoiceResponse()
+
+    if step == "crop":
+        gather = Gather(num_digits=1, action="/api/voice/webhook/?step=symptom", method="POST")
+        gather.say(VOICE_WELCOME_PROMPT)
+        response.append(gather)
+        response.say(CROP_MENU_PROMPT)  # heard only if no key was pressed in time
+        return HttpResponse(str(response), content_type="text/xml")
+
+    if step == "symptom":
+        if digits not in CROP_CHOICES:
+            gather = Gather(num_digits=1, action="/api/voice/webhook/?step=symptom", method="POST")
+            gather.say(VOICE_UNRECOGNIZED_PREFIX + CROP_MENU_PROMPT)
+            response.append(gather)
+            return HttpResponse(str(response), content_type="text/xml")
+
+        gather = Gather(
+            num_digits=1,
+            action=f"/api/voice/webhook/?step=diagnosis&crop={digits}",
+            method="POST",
+        )
+        gather.say(SYMPTOM_MENU_PROMPT)
+        response.append(gather)
+        return HttpResponse(str(response), content_type="text/xml")
+
+    # step == "diagnosis"
+    crop_choice = request.GET.get("crop", "")
+    if digits not in SYMPTOM_CHOICES:
+        gather = Gather(
+            num_digits=1,
+            action=f"/api/voice/webhook/?step=diagnosis&crop={crop_choice}",
+            method="POST",
+        )
+        gather.say(VOICE_UNRECOGNIZED_PREFIX + SYMPTOM_MENU_PROMPT)
+        response.append(gather)
+        return HttpResponse(str(response), content_type="text/xml")
+
+    class_id = class_for_choice(crop_choice, digits)
+    text = get_treatment_text(class_id) if class_id else None
+    response.say(text or VOICE_NO_ADVICE_FOUND)
+    response.hangup()
+    return HttpResponse(str(response), content_type="text/xml")
