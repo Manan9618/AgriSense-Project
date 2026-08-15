@@ -5,6 +5,19 @@ Diagnosis.predicted_class so the backend can only ever store a class the model
 (and the app's AdvisoryMapper) actually knows about.
 """
 
+from django.db import models
+
+
+class Urgency(models.TextChoices):
+    """Shared by Advisory and TreatmentRecommendation — hoisted out of either
+    model so the two don't have to be declared in a particular order just to
+    reference each other's choices."""
+
+    LOW = "low", "Low"
+    MEDIUM = "medium", "Medium"
+    HIGH = "high", "High"
+
+
 DISEASE_CLASSES = [
     ("potato_early_blight", "Potato — Early blight"),
     ("potato_late_blight", "Potato — Late blight"),

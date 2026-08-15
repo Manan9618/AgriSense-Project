@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-from core.constants import DISEASE_CLASSES
+from core.constants import DISEASE_CLASSES, Urgency
 
 
 class Scan(models.Model):
@@ -91,11 +91,6 @@ class Advisory(models.Model):
         WEATHER = "weather", "Weather / spray-window alert"
         PRICE = "price", "Mandi price comparison"
 
-    class Urgency(models.TextChoices):
-        LOW = "low", "Low"
-        MEDIUM = "medium", "Medium"
-        HIGH = "high", "High"
-
     class DeliveryChannel(models.TextChoices):
         APP_PUSH = "app_push", "In-app / push notification"
         SMS = "sms", "SMS"
@@ -125,3 +120,32 @@ class Advisory(models.Model):
 
     def __str__(self):
         return f"[{self.kind}] {self.title} -> {self.farmer_id}"
+
+
+class TreatmentRecommendation(models.Model):
+    """AdvisoryMapper's source data: one row per (class_id, language).
+
+    Seeded from content/treatment_recommendations.json — a source shared
+    with the Flutter app's bundled copy of the same file, so the identical
+    localized advice ships offline in the app *and* is queryable here (for
+    the Week 21 FPO dashboard, Week 14 community Q&A routing, etc.) rather
+    than existing in two hand-maintained places. Re-run
+    `manage.py seed_treatment_recommendations` after editing the JSON.
+    """
+
+    class_id = models.CharField(max_length=64, choices=DISEASE_CLASSES)
+    language = models.CharField(max_length=10)
+    title = models.CharField(max_length=200)
+    instructions = models.TextField()
+    urgency = models.CharField(max_length=10, choices=Urgency.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["class_id", "language"], name="unique_treatment_class_language"
+            )
+        ]
+        ordering = ["class_id", "language"]
+
+    def __str__(self):
+        return f"{self.class_id} ({self.language}): {self.title}"

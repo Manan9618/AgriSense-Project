@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 
 import '../models/scan_record.dart';
+import '../services/advisory_service.dart';
 import '../services/inference_service.dart';
 import '../services/photo_capture_source.dart';
 import '../state/language_provider.dart';
@@ -20,10 +21,12 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.inferenceService,
+    required this.advisoryService,
     required this.photoCaptureSource,
   });
 
   final InferenceService inferenceService;
+  final AdvisoryService advisoryService;
   final PhotoCaptureSource photoCaptureSource;
 
   @override
@@ -65,13 +68,23 @@ class _HomeScreenState extends State<HomeScreen> {
         scan; // try only completes without throwing after assigning scan
     context.read<ScanHistoryProvider>().add(result);
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => DiagnosisResultScreen(scan: result)),
+      MaterialPageRoute(
+        builder: (_) => DiagnosisResultScreen(
+          scan: result,
+          advisoryService: widget.advisoryService,
+        ),
+      ),
     );
   }
 
   void _openScan(ScanRecord scan) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => DiagnosisResultScreen(scan: scan)),
+      MaterialPageRoute(
+        builder: (_) => DiagnosisResultScreen(
+          scan: scan,
+          advisoryService: widget.advisoryService,
+        ),
+      ),
     );
   }
 

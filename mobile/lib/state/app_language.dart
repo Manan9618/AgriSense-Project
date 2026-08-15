@@ -1,7 +1,7 @@
-/// Languages selectable in the app shell. Full advisory-text localization
-/// (the actual treatment instructions) lands in Week 5's AdvisoryMapper —
-/// this just drives UI chrome strings and records the farmer's preference
-/// for later weeks to use.
+/// Languages selectable in the app shell. UI chrome strings live here;
+/// treatment-advisory text itself comes from AdvisoryService (Week 5),
+/// which reads the same content/treatment_recommendations.json the backend
+/// seeds TreatmentRecommendation from.
 enum AppLanguage {
   english(code: 'en', displayName: 'English'),
   hindi(code: 'hi', displayName: 'हिन्दी'),
@@ -37,8 +37,12 @@ class AppStrings {
     'crop': 'Crop',
     'healthy': 'Healthy',
     'diseaseDetected': 'Detected',
-    'advisoryComingSoon': 'Treatment advisory — coming in Week 5.',
     'selectLanguage': 'Select language',
+    'urgency': 'Urgency',
+    'urgencyLow': 'Low',
+    'urgencyMedium': 'Medium',
+    'urgencyHigh': 'High',
+    'recommendedTreatment': 'Recommended Treatment',
   };
 
   static const _hi = {
@@ -56,8 +60,12 @@ class AppStrings {
     'crop': 'फसल',
     'healthy': 'स्वस्थ',
     'diseaseDetected': 'पहचान हुई',
-    'advisoryComingSoon': 'उपचार सलाह — सप्ताह 5 में आ रही है।',
     'selectLanguage': 'भाषा चुनें',
+    'urgency': 'गंभीरता',
+    'urgencyLow': 'कम',
+    'urgencyMedium': 'मध्यम',
+    'urgencyHigh': 'अधिक',
+    'recommendedTreatment': 'अनुशंसित उपचार',
   };
 
   static const _gu = {
@@ -75,8 +83,12 @@ class AppStrings {
     'crop': 'પાક',
     'healthy': 'સ્વસ્થ',
     'diseaseDetected': 'મળી આવ્યું',
-    'advisoryComingSoon': 'સારવાર સલાહ — અઠવાડિયું 5 માં આવે છે.',
     'selectLanguage': 'ભાષા પસંદ કરો',
+    'urgency': 'ગંભીરતા',
+    'urgencyLow': 'ઓછી',
+    'urgencyMedium': 'મધ્યમ',
+    'urgencyHigh': 'વધુ',
+    'recommendedTreatment': 'ભલામણ કરેલ સારવાર',
   };
 
   static const Map<AppLanguage, AppStrings> _byLanguage = {

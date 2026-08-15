@@ -1,0 +1,153 @@
+{
+  "_comment": "Canonical source for AdvisoryMapper (docs/classes.md). Consumed by both backend/core/management/commands/seed_treatment_recommendations.py and mobile/assets/content/ (bundled copy). One entry per class_id; each has a shared urgency plus per-language title/instructions.",
+  "potato_early_blight": {
+    "urgency": "medium",
+    "en": {
+      "title": "Early Blight",
+      "instructions": "Remove and destroy affected leaves. Apply a copper-based or chlorothalonil fungicide every 7-10 days. Water at the base, not overhead. Avoid planting potatoes or tomatoes in the same soil for 2 years."
+    },
+    "hi": {
+      "title": "अगेती झुलसा रोग",
+      "instructions": "प्रभावित पत्तियों को हटाकर नष्ट करें। हर 7-10 दिन में कॉपर-आधारित फफूंदनाशक का छिड़काव करें। पौधे की जड़ में पानी दें, ऊपर से नहीं। 2 साल तक उसी मिट्टी में आलू या टमाटर न लगाएं।"
+    },
+    "gu": {
+      "title": "વહેલો સુકારો",
+      "instructions": "અસરગ્રસ્ત પાંદડા દૂર કરી નાશ કરો. દર 7-10 દિવસે કોપર આધારિત ફૂગનાશક છાંટો. છોડના મૂળમાં પાણી આપો, ઉપરથી નહીં. 2 વર્ષ સુધી એ જ જમીનમાં બટાકા કે ટામેટા ન વાવો."
+    }
+  },
+  "potato_late_blight": {
+    "urgency": "high",
+    "en": {
+      "title": "Late Blight",
+      "instructions": "Act quickly — this spreads fast in cool, wet weather. Remove and bury or burn infected plants immediately; do not compost them. Apply a protectant fungicide (copper-based or mancozeb) before the next rain. Improve spacing between plants for better airflow."
+    },
+    "hi": {
+      "title": "पछेती झुलसा रोग",
+      "instructions": "तुरंत कार्रवाई करें — यह ठंडे, नम मौसम में तेज़ी से फैलता है। संक्रमित पौधों को तुरंत हटाकर जला दें या दबा दें; खाद न बनाएं। अगली बारिश से पहले कॉपर-आधारित या मैंकोज़ेब फफूंदनाशक का छिड़काव करें। बेहतर हवा के लिए पौधों के बीच दूरी बढ़ाएं।"
+    },
+    "gu": {
+      "title": "મોડો સુકારો",
+      "instructions": "તાત્કાલિક પગલાં લો — આ ઠંડા, ભેજવાળા હવામાનમાં ઝડપથી ફેલાય છે. ચેપગ્રસ્ત છોડને તરત જ દૂર કરી બાળી નાખો અથવા દાટી દો; ખાતર ન બનાવો. આગામી વરસાદ પહેલાં કોપર આધારિત અથવા મેન્કોઝેબ ફૂગનાશક છાંટો. હવાની અવરજવર માટે છોડ વચ્ચે અંતર વધારો."
+    }
+  },
+  "potato_healthy": {
+    "urgency": "low",
+    "en": {
+      "title": "Healthy",
+      "instructions": "No treatment needed. Continue regular watering and check weekly for early signs of leaf spots or wilting."
+    },
+    "hi": {
+      "title": "स्वस्थ",
+      "instructions": "कोई उपचार आवश्यक नहीं। नियमित सिंचाई जारी रखें और पत्तियों पर धब्बे या मुरझाने के शुरुआती लक्षणों के लिए साप्ताहिक जांच करें।"
+    },
+    "gu": {
+      "title": "સ્વસ્થ",
+      "instructions": "કોઈ સારવારની જરૂર નથી. નિયમિત પિયત ચાલુ રાખો અને પાંદડા પર ડાઘ કે કરમાવાના શરૂઆતના ચિહ્નો માટે દર અઠવાડિયે તપાસ કરો."
+    }
+  },
+  "pepper_bell_bacterial_spot": {
+    "urgency": "medium",
+    "en": {
+      "title": "Bacterial Spot",
+      "instructions": "Remove severely spotted leaves and fruit. Apply a copper-based bactericide weekly during wet periods. Avoid working in the field when leaves are wet — this spreads the bacteria. Switch to drip irrigation next season if possible."
+    },
+    "hi": {
+      "title": "जीवाणु धब्बा रोग",
+      "instructions": "अधिक धब्बे वाली पत्तियों और फलों को हटा दें। नम मौसम में साप्ताहिक कॉपर-आधारित जीवाणुनाशक का छिड़काव करें। पत्तियां गीली होने पर खेत में काम न करें — इससे रोग फैलता है। अगले सीज़न में ड्रिप सिंचाई अपनाएं।"
+    },
+    "gu": {
+      "title": "બેક્ટેરિયલ ડાઘ",
+      "instructions": "વધુ ડાઘવાળા પાંદડા અને ફળ દૂર કરો. ભેજવાળા સમયમાં દર અઠવાડિયે કોપર આધારિત બેક્ટેરિયાનાશક છાંટો. પાંદડા ભીના હોય ત્યારે ખેતરમાં કામ ન કરો — તેનાથી રોગ ફેલાય છે. શક્ય હોય તો આગામી સીઝનમાં ટપક પિયત અપનાવો."
+    }
+  },
+  "pepper_bell_healthy": {
+    "urgency": "low",
+    "en": {
+      "title": "Healthy",
+      "instructions": "No treatment needed. Continue regular watering and check weekly for early signs of leaf spots or wilting."
+    },
+    "hi": {
+      "title": "स्वस्थ",
+      "instructions": "कोई उपचार आवश्यक नहीं। नियमित सिंचाई जारी रखें और पत्तियों पर धब्बे या मुरझाने के शुरुआती लक्षणों के लिए साप्ताहिक जांच करें।"
+    },
+    "gu": {
+      "title": "સ્વસ્થ",
+      "instructions": "કોઈ સારવારની જરૂર નથી. નિયમિત પિયત ચાલુ રાખો અને પાંદડા પર ડાઘ કે કરમાવાના શરૂઆતના ચિહ્નો માટે દર અઠવાડિયે તપાસ કરો."
+    }
+  },
+  "tomato_bacterial_spot": {
+    "urgency": "medium",
+    "en": {
+      "title": "Bacterial Spot",
+      "instructions": "Remove severely spotted leaves and fruit. Apply a copper-based bactericide weekly during wet periods. Avoid working in the field when leaves are wet — this spreads the bacteria. Switch to drip irrigation next season if possible."
+    },
+    "hi": {
+      "title": "जीवाणु धब्बा रोग",
+      "instructions": "अधिक धब्बे वाली पत्तियों और फलों को हटा दें। नम मौसम में साप्ताहिक कॉपर-आधारित जीवाणुनाशक का छिड़काव करें। पत्तियां गीली होने पर खेत में काम न करें — इससे रोग फैलता है। अगले सीज़न में ड्रिप सिंचाई अपनाएं।"
+    },
+    "gu": {
+      "title": "બેક્ટેરિયલ ડાઘ",
+      "instructions": "વધુ ડાઘવાળા પાંદડા અને ફળ દૂર કરો. ભેજવાળા સમયમાં દર અઠવાડિયે કોપર આધારિત બેક્ટેરિયાનાશક છાંટો. પાંદડા ભીના હોય ત્યારે ખેતરમાં કામ ન કરો — તેનાથી રોગ ફેલાય છે. શક્ય હોય તો આગામી સીઝનમાં ટપક પિયત અપનાવો."
+    }
+  },
+  "tomato_early_blight": {
+    "urgency": "medium",
+    "en": {
+      "title": "Early Blight",
+      "instructions": "Remove and destroy affected lower leaves. Apply a copper-based or chlorothalonil fungicide every 7-10 days. Mulch around the base to stop soil splashing onto leaves. Stake plants for better airflow."
+    },
+    "hi": {
+      "title": "अगेती झुलसा रोग",
+      "instructions": "प्रभावित निचली पत्तियों को हटाकर नष्ट करें। हर 7-10 दिन में कॉपर-आधारित फफूंदनाशक का छिड़काव करें। मिट्टी के छींटे पत्तियों पर न पड़ें इसके लिए जड़ के आसपास मल्च बिछाएं। बेहतर हवा के लिए पौधों को सहारा दें।"
+    },
+    "gu": {
+      "title": "વહેલો સુકારો",
+      "instructions": "અસરગ્રસ્ત નીચલા પાંદડા દૂર કરી નાશ કરો. દર 7-10 દિવસે કોપર આધારિત ફૂગનાશક છાંટો. માટીના છાંટા પાંદડા પર ન પડે તે માટે મૂળ પાસે મલ્ચ પાથરો. હવાની અવરજવર માટે છોડને ટેકો આપો."
+    }
+  },
+  "tomato_late_blight": {
+    "urgency": "high",
+    "en": {
+      "title": "Late Blight",
+      "instructions": "Act quickly — this spreads fast in cool, wet weather and can destroy a field within days. Remove and bury or burn infected plants immediately; do not compost them. Apply a protectant fungicide (copper-based or mancozeb) before the next rain."
+    },
+    "hi": {
+      "title": "पछेती झुलसा रोग",
+      "instructions": "तुरंत कार्रवाई करें — यह ठंडे, नम मौसम में तेज़ी से फैलता है और कुछ ही दिनों में पूरे खेत को नष्ट कर सकता है। संक्रमित पौधों को तुरंत हटाकर जला दें या दबा दें; खाद न बनाएं। अगली बारिश से पहले कॉपर-आधारित या मैंकोज़ेब फफूंदनाशक का छिड़काव करें।"
+    },
+    "gu": {
+      "title": "મોડો સુકારો",
+      "instructions": "તાત્કાલિક પગલાં લો — આ ઠંડા, ભેજવાળા હવામાનમાં ઝડપથી ફેલાય છે અને થોડા દિવસોમાં આખું ખેતર બગાડી શકે છે. ચેપગ્રસ્ત છોડને તરત જ દૂર કરી બાળી નાખો અથવા દાટી દો; ખાતર ન બનાવો. આગામી વરસાદ પહેલાં કોપર આધારિત અથવા મેન્કોઝેબ ફૂગનાશક છાંટો."
+    }
+  },
+  "tomato_leaf_mold": {
+    "urgency": "medium",
+    "en": {
+      "title": "Leaf Mold",
+      "instructions": "Improve ventilation and reduce humidity around plants — space them further apart. Remove and destroy affected lower leaves. Avoid overhead watering. Apply a fungicide labeled for leaf mold if humidity cannot be reduced."
+    },
+    "hi": {
+      "title": "पत्ती फफूंदी",
+      "instructions": "हवा का आवागमन बढ़ाएं और पौधों के आसपास नमी कम करें — पौधों के बीच अधिक दूरी रखें। प्रभावित निचली पत्तियों को हटाकर नष्ट करें। ऊपर से पानी देने से बचें। यदि नमी कम न हो सके तो पत्ती फफूंदी के लिए स्वीकृत फफूंदनाशक का उपयोग करें।"
+    },
+    "gu": {
+      "title": "પર્ણ ફૂગ",
+      "instructions": "હવાની અવરજવર વધારો અને છોડની આસપાસ ભેજ ઘટાડો — છોડ વચ્ચે વધુ અંતર રાખો. અસરગ્રસ્ત નીચલા પાંદડા દૂર કરી નાશ કરો. ઉપરથી પાણી આપવાનું ટાળો. જો ભેજ ઘટાડી ન શકાય તો પર્ણ ફૂગ માટે માન્ય ફૂગનાશક વાપરો."
+    }
+  },
+  "tomato_healthy": {
+    "urgency": "low",
+    "en": {
+      "title": "Healthy",
+      "instructions": "No treatment needed. Continue regular watering and check weekly for early signs of leaf spots or wilting."
+    },
+    "hi": {
+      "title": "स्वस्थ",
+      "instructions": "कोई उपचार आवश्यक नहीं। नियमित सिंचाई जारी रखें और पत्तियों पर धब्बे या मुरझाने के शुरुआती लक्षणों के लिए साप्ताहिक जांच करें।"
+    },
+    "gu": {
+      "title": "સ્વસ્થ",
+      "instructions": "કોઈ સારવારની જરૂર નથી. નિયમિત પિયત ચાલુ રાખો અને પાંદડા પર ડાઘ કે કરમાવાના શરૂઆતના ચિહ્નો માટે દર અઠવાડિયે તપાસ કરો."
+    }
+  }
+}

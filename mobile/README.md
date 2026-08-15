@@ -48,3 +48,13 @@ device), you don't need this — the plugin resolves its native library normally
 cp ../ml/models/v1/model_int8.tflite assets/models/agrisense_v1_int8.tflite
 cp ../ml/data/class_names.json assets/models/class_names.json
 ```
+
+## Regenerating the bundled advisory content
+
+`assets/content/treatment_recommendations.json` is a copy of the repo-root
+`content/treatment_recommendations.json` — see `docs/advisory-content.md`. If that file changes,
+re-copy:
+
+```bash
+cp ../content/treatment_recommendations.json assets/content/treatment_recommendations.json
+```

@@ -4,24 +4,61 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/scan_record.dart';
+import '../services/advisory_service.dart';
+import '../state/app_language.dart';
 import '../state/language_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stat_badge.dart';
 
 /// Diagnosis result screen — layout matches the project plan's sample UI
-/// (Section 6): confidence/crop/status badges, a detected-condition card,
-/// and a treatment section. Treatment content itself is a Week 5 stub here
-/// (AdvisoryMapper isn't built yet); TTS readback ("Hear Advice in...") is
-/// Week 8.
+/// (Section 6): confidence/crop/urgency badges, a detected-condition card,
+/// and a treatment section with real localized advice (Week 5's
+/// AdvisoryMapper content, bundled offline). TTS readback ("Hear Advice
+/// in...") is Week 8.
 class DiagnosisResultScreen extends StatelessWidget {
-  const DiagnosisResultScreen({super.key, required this.scan});
+  const DiagnosisResultScreen({
+    super.key,
+    required this.scan,
+    required this.advisoryService,
+  });
 
   final ScanRecord scan;
+  final AdvisoryService advisoryService;
+
+  Color _urgencyColor(String urgency) {
+    switch (urgency) {
+      case 'high':
+        return AppTheme.highUrgency;
+      case 'medium':
+        return AppTheme.mediumUrgency;
+      default:
+        return AppTheme.primaryGreen;
+    }
+  }
+
+  String _urgencyLabel(String urgency, AppStrings strings) {
+    switch (urgency) {
+      case 'high':
+        return strings['urgencyHigh'];
+      case 'medium':
+        return strings['urgencyMedium'];
+      default:
+        return strings['urgencyLow'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final strings = context.watch<LanguageProvider>().strings;
+    final languageProvider = context.watch<LanguageProvider>();
+    final strings = languageProvider.strings;
     final confidencePct = (scan.prediction.confidence * 100).toStringAsFixed(0);
+    final advisory = advisoryService.forClass(
+      scan.prediction.classId,
+      language: languageProvider.language.code,
+    );
+    final urgencyColor = advisory != null
+        ? _urgencyColor(advisory.urgency)
+        : Colors.black87;
 
     return Scaffold(
       appBar: AppBar(title: Text(strings['diagnosisResult'])),
@@ -50,15 +87,12 @@ class DiagnosisResultScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 StatBadge(value: scan.cropLabel, label: strings['crop']),
                 const SizedBox(width: 8),
-                StatBadge(
-                  value: scan.isHealthy
-                      ? strings['healthy']
-                      : strings['diseaseDetected'],
-                  label: scan.conditionLabel,
-                  valueColor: scan.isHealthy
-                      ? AppTheme.primaryGreen
-                      : AppTheme.highUrgency,
-                ),
+                if (advisory != null)
+                  StatBadge(
+                    value: _urgencyLabel(advisory.urgency, strings),
+                    label: strings['urgency'],
+                    valueColor: urgencyColor,
+                  ),
               ],
             ),
             const SizedBox(height: 16),
@@ -77,7 +111,7 @@ class DiagnosisResultScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          scan.conditionLabel,
+                          advisory?.title ?? scan.conditionLabel,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -91,7 +125,7 @@ class DiagnosisResultScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.highUrgency,
+                            color: urgencyColor,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -104,11 +138,24 @@ class DiagnosisResultScreen extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    strings['advisoryComingSoon'],
-                    style: const TextStyle(color: Colors.black54),
-                  ),
+                  if (advisory != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      strings['recommendedTreatment'],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      advisory.instructions,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -66,6 +66,7 @@ flutter:
   assets:
     - assets/models/agrisense_v1_int8.tflite
     - assets/models/class_names.json
+    - assets/content/treatment_recommendations.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

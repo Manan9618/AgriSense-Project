@@ -12,6 +12,7 @@ implementation, phase by phase.
 backend/    Django API — farmer accounts, advisory orchestration, price/weather aggregation
 ml/         Model training pipeline — dataset prep, CV model training, TFLite conversion
 mobile/     Flutter app — camera capture, on-device diagnosis, voice-first UI, offline sync
+content/    Shared content (treatment recommendations) consumed by both backend and mobile
 docs/       Class list, data model notes, ADRs, dataset card
 ```
 
@@ -40,6 +41,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] TFLite model wired for on-device inference — verified with **real** inference in `flutter test` (not mocked), using the actual bundled quantized model against held-out test images
 - [x] Camera hardware itself isolated behind a `PhotoCaptureSource` interface and untested here (no device/emulator available) — see `mobile/README.md` for what's verified vs. not
 
+### Week 5 — Diagnosis Advisory Content
+- [x] Treatment-recommendation database: `TreatmentRecommendation` model + `AdvisoryMapper` (`backend/core/advisory_mapper.py`)
+- [x] Localized into English, Hindi, Gujarati — all 10 classes × 3 languages (`content/treatment_recommendations.json`, see `docs/advisory-content.md`)
+- [x] Wired into the app's Diagnosis Result screen — real localized advice shown fully offline, no backend call
+- [x] Urgency levels (low/medium/high) drive the result screen's urgency badge and color
+
 ## Backend quickstart
 
 ```bash
@@ -47,6 +54,7 @@ cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
+python manage.py seed_treatment_recommendations
 python manage.py test
 ```
 

@@ -1,4 +1,5 @@
 import 'package:agrisense_ai/screens/home_screen.dart';
+import 'package:agrisense_ai/services/advisory_service.dart';
 import 'package:agrisense_ai/services/inference_service.dart';
 import 'package:agrisense_ai/state/language_provider.dart';
 import 'package:agrisense_ai/state/scan_history_provider.dart';
@@ -52,6 +53,7 @@ void main() {
       await tester.runAsync(() async {
         final inferenceService = await InferenceService.load();
         addTearDown(inferenceService.close);
+        final advisoryService = await AdvisoryService.load();
 
         await tester.pumpWidget(
           MultiProvider(
@@ -62,6 +64,7 @@ void main() {
             child: MaterialApp(
               home: HomeScreen(
                 inferenceService: inferenceService,
+                advisoryService: advisoryService,
                 photoCaptureSource: const FakePhotoCaptureSource(
                   'test/fixtures/sample_2_pepper_bell_healthy.jpg',
                 ),
@@ -83,6 +86,14 @@ void main() {
         expect(find.text('Diagnosis Result'), findsOneWidget);
         expect(find.text('Healthy'), findsWidgets);
         expect(find.text('Pepper (bell)'), findsOneWidget);
+        expect(find.text('Recommended Treatment'), findsOneWidget);
+        expect(
+          find.text(
+            'No treatment needed. Continue regular watering and check '
+            'weekly for early signs of leaf spots or wilting.',
+          ),
+          findsOneWidget,
+        );
 
         await tester.pageBack();
         await tester.pump();
@@ -96,6 +107,7 @@ void main() {
     await tester.runAsync(() async {
       final inferenceService = await InferenceService.load();
       addTearDown(inferenceService.close);
+      final advisoryService = await AdvisoryService.load();
 
       await tester.pumpWidget(
         MultiProvider(
@@ -106,6 +118,7 @@ void main() {
           child: MaterialApp(
             home: HomeScreen(
               inferenceService: inferenceService,
+              advisoryService: advisoryService,
               photoCaptureSource: const FakePhotoCaptureSource(
                 'test/fixtures/sample_2_pepper_bell_healthy.jpg',
               ),

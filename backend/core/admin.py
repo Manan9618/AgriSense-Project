@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.models import Advisory, Diagnosis, Scan
+from core.models import Advisory, Diagnosis, Scan, TreatmentRecommendation
 
 
 @admin.register(Scan)
@@ -20,3 +20,9 @@ class DiagnosisAdmin(admin.ModelAdmin):
 class AdvisoryAdmin(admin.ModelAdmin):
     list_display = ("id", "farmer", "kind", "urgency", "delivered_via", "created_at")
     list_filter = ("kind", "urgency", "delivered_via")
+
+
+@admin.register(TreatmentRecommendation)
+class TreatmentRecommendationAdmin(admin.ModelAdmin):
+    list_display = ("class_id", "language", "title", "urgency")
+    list_filter = ("language", "urgency")
