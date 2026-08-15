@@ -133,6 +133,15 @@ void main() {
       await pumpFrames(tester);
 
       expect(find.text('તાજેતરના સ્કેન'), findsOneWidget);
+
+      // Marathi (Week 11) — same selector, so this mostly proves the 4th
+      // language is actually wired into the menu, not just AppStrings.
+      await tester.tap(find.byIcon(Icons.language));
+      await pumpFrames(tester);
+      await tester.tap(find.text('मराठी'));
+      await pumpFrames(tester);
+
+      expect(find.text('अलीकडील स्कॅन'), findsOneWidget);
     });
   });
 

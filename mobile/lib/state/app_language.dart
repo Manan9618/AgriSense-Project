@@ -20,6 +20,12 @@ enum AppLanguage {
     displayName: 'ગુજરાતી',
     ttsLocale: 'gu-IN',
     sttLocale: 'gu_IN',
+  ),
+  marathi(
+    code: 'mr',
+    displayName: 'मराठी',
+    ttsLocale: 'mr-IN',
+    sttLocale: 'mr_IN',
   );
 
   const AppLanguage({
@@ -41,10 +47,11 @@ enum AppLanguage {
   final String sttLocale;
 }
 
-/// UI chrome strings, keyed by [AppLanguage]. Deliberately small and
-/// hand-written rather than a full ARB/intl pipeline — Week 4 only needs a
-/// working language *selector*, not a translation pipeline; Week 11
-/// ("Regional Language Expansion") is where this scales up properly.
+/// UI chrome strings, keyed by [AppLanguage]. Deliberately still small and
+/// hand-written rather than a full ARB/intl pipeline as of Week 11 — see
+/// docs/adr/0012-regional-language-expansion.md for why a gen-l10n migration
+/// wasn't worth it at 4 languages / ~38 keys, and Marathi was added here
+/// instead as this app's concrete answer to "Regional Language Expansion."
 class AppStrings {
   const AppStrings._(this._values);
 
@@ -177,10 +184,53 @@ class AppStrings {
     'allSynced': 'બધા સ્કેન સિંક થઈ ગયા',
   };
 
+  static const _mr = {
+    'appTitle': 'AgriSense AI',
+    'homeTab': 'होम',
+    'weatherTab': 'हवामान',
+    'pricesTab': 'भाव',
+    'communityTab': 'समुदाय',
+    'tapToScan': 'पिकाचे पान स्कॅन करण्यासाठी टॅप करा',
+    'capturePhoto': 'फोटो घ्या',
+    'recentScans': 'अलीकडील स्कॅन',
+    'noScansYet': 'अजून कोणतेही स्कॅन नाही — वरील तुमचा पहिला पीक फोटो घ्या.',
+    'diagnosisResult': 'निदान निकाल',
+    'confidence': 'विश्वास',
+    'crop': 'पीक',
+    'healthy': 'निरोगी',
+    'diseaseDetected': 'आढळले',
+    'selectLanguage': 'भाषा निवडा',
+    'urgency': 'तीव्रता',
+    'urgencyLow': 'कमी',
+    'urgencyMedium': 'मध्यम',
+    'urgencyHigh': 'जास्त',
+    'recommendedTreatment': 'शिफारस केलेला उपचार',
+    'priceComparison': 'भाव तुलना',
+    'selectCrop': 'पीक',
+    'state': 'राज्य',
+    'district': 'जिल्हा (पर्यायी)',
+    'comparePrices': 'भाव तुलना करा',
+    'sampleDataWarning': 'नमुना डेटा — लाइव्ह बाजार फीड अद्याप जोडलेले नाही.',
+    'noPricesFound': 'या पीक/स्थानासाठी कोणताही भाव सापडला नाही.',
+    'perQuintal': '/क्विंटल',
+    'bestPrice': 'सर्वोत्तम भाव',
+    'hearAdviceIn': '{lang} मध्ये सल्ला ऐका',
+    'listening': 'ऐकत आहे…',
+    'voiceCommandHint': 'माइक दाबा आणि "स्कॅन" किंवा "भाव" म्हणा',
+    'voiceCommandNotRecognized': 'कमांड समजला नाही — "स्कॅन" किंवा "भाव" म्हणा.',
+    'pendingSync': '{count} स्कॅन सिंक होणे बाकी आहे',
+    'syncNow': 'आता सिंक करा',
+    'syncing': 'सिंक होत आहे…',
+    'syncSuccess': '{count} स्कॅन सिंक झाले',
+    'syncPartialFailure': '{synced} सिंक झाले, {failed} नंतर पुन्हा प्रयत्न होईल',
+    'allSynced': 'सर्व स्कॅन सिंक झाले',
+  };
+
   static const Map<AppLanguage, AppStrings> _byLanguage = {
     AppLanguage.english: AppStrings._(_en),
     AppLanguage.hindi: AppStrings._(_hi),
     AppLanguage.gujarati: AppStrings._(_gu),
+    AppLanguage.marathi: AppStrings._(_mr),
   };
 
   factory AppStrings.of(AppLanguage language) => _byLanguage[language]!;

@@ -1,3 +1,6 @@
+import json
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
@@ -9,24 +12,39 @@ from core.tests.helpers import MediaIsolatedTestCase, make_scan
 
 User = get_user_model()
 
+CONTENT_PATH = settings.BASE_DIR.parent / "content" / "treatment_recommendations.json"
+
+
+def _expected_languages() -> set[str]:
+    """Discovered from the content file rather than hardcoded, so this test
+    doesn't need editing every time a language is added (Week 11)."""
+    data = json.loads(CONTENT_PATH.read_text())
+    first_class = next(v for k, v in data.items() if not k.startswith("_"))
+    return {k for k in first_class if k != "urgency"}
+
 
 class SeedTreatmentRecommendationsCommandTests(TestCase):
-    def test_seeds_every_class_in_all_three_languages(self):
+    def test_seeds_every_class_in_every_supported_language(self):
         call_command("seed_treatment_recommendations")
 
-        self.assertEqual(TreatmentRecommendation.objects.count(), len(DISEASE_CLASS_IDS) * 3)
+        expected_languages = _expected_languages()
+        self.assertEqual(
+            TreatmentRecommendation.objects.count(),
+            len(DISEASE_CLASS_IDS) * len(expected_languages),
+        )
         for class_id in DISEASE_CLASS_IDS:
             languages = set(
                 TreatmentRecommendation.objects.filter(class_id=class_id).values_list(
                     "language", flat=True
                 )
             )
-            self.assertEqual(languages, {"en", "hi", "gu"}, msg=f"incomplete for {class_id}")
+            self.assertEqual(languages, expected_languages, msg=f"incomplete for {class_id}")
 
     def test_rerunning_is_idempotent(self):
         call_command("seed_treatment_recommendations")
         call_command("seed_treatment_recommendations")
-        self.assertEqual(TreatmentRecommendation.objects.count(), len(DISEASE_CLASS_IDS) * 3)
+        expected_count = len(DISEASE_CLASS_IDS) * len(_expected_languages())
+        self.assertEqual(TreatmentRecommendation.objects.count(), expected_count)
 
 
 class AdvisoryMapperTests(MediaIsolatedTestCase):

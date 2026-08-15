@@ -23,10 +23,23 @@ class Command(BaseCommand):
         if missing:
             raise CommandError(f"Missing classes in {CONTENT_PATH}: {sorted(missing)}")
 
+        language_sets = {
+            class_id: frozenset(k for k in entry if k != "urgency")
+            for class_id, entry in classes.items()
+        }
+        inconsistent = {
+            class_id: langs
+            for class_id, langs in language_sets.items()
+            if langs != next(iter(language_sets.values()))
+        }
+        if inconsistent:
+            raise CommandError(f"Inconsistent language coverage across classes: {inconsistent}")
+
         created, updated = 0, 0
         for class_id, entry in classes.items():
             urgency = entry["urgency"]
-            for language in ("en", "hi", "gu"):
+            languages = language_sets[class_id]
+            for language in languages:
                 translation = entry[language]
                 _, was_created = TreatmentRecommendation.objects.update_or_create(
                     class_id=class_id,

@@ -78,6 +78,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] Voice IVR: same triage, state carried via `<Gather>` action-URL query params instead of a session model (`POST /api/voice/webhook/`)
 - [x] 26 new backend tests (75 total) — the crop/symptom mapping, the full SMS state machine (happy paths, invalid input recovery, per-phone-number isolation), and both webhook views via simulated Twilio payloads
 
+### Week 11 — Regional Language Expansion
+- [x] Added **Marathi** as a 4th supported language across the whole stack (content JSON, backend seed data, mobile UI chrome, TTS/STT locales) rather than migrating `AppStrings` to Flutter's ARB/`gen-l10n` pipeline — a deferral explained in `docs/adr/0012-regional-language-expansion.md`, not an oversight
+- [x] Supported-language set is now **discovered from `content/treatment_recommendations.json`**, not hardcoded — the seed command (`backend/core/management/commands/seed_treatment_recommendations.py`) derives it and fails loudly (`CommandError`) on inconsistent per-class coverage; both the backend and mobile "every class, every language" tests derive their expected set the same way, so they extend themselves automatically the next time a language is added
+- [x] All three shared content files (`treatment_recommendations.json`, `weather_advisory_templates.json`, `price_advisory_templates.json`) now have full `en`/`hi`/`gu`/`mr` coverage for every entry
+- [x] 1 new mobile test assertion (Marathi selection in `home_screen_flow_test.dart`), `advisory_service_test.dart` now iterates the discovered language set instead of a hardcoded 3 (48 mobile tests total, 2 self-skipping); backend stays at 75 tests (assertions strengthened, no new test count) with the seed command now producing 40 rows (10 classes × 4 languages)
+
 ## Backend quickstart
 
 ```bash

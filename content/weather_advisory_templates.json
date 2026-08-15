@@ -1,5 +1,5 @@
 {
-  "_comment": "Templates for core/weather_advisory_tool.py. {placeholders} filled in with Python str.format(). Times/day-counts aren't translated (numerals are shared across en/hi/gu), only the surrounding text is.",
+  "_comment": "Templates for core/weather_advisory_tool.py. {placeholders} filled in with Python str.format(). Times/day-counts aren't translated (numerals are shared across en/hi/gu/mr), only the surrounding text is.",
   "rain_expected_soon": {
     "urgency": "high",
     "en": {
@@ -13,6 +13,10 @@
     "gu": {
       "title": "ટૂંક સમયમાં વરસાદની શક્યતા",
       "body": "લગભગ {time} વાગ્યે વરસાદની શક્યતા છે — વરસાદ બંધ થાય ત્યાં સુધી છંટકાવ ન કરો."
+    },
+    "mr": {
+      "title": "लवकरच पावसाची शक्यता",
+      "body": "अंदाजे {time} वाजता पाऊस पडण्याची शक्यता आहे — पाऊस थांबेपर्यंत फवारणी करू नका."
     }
   },
   "good_spray_window": {
@@ -28,6 +32,10 @@
     "gu": {
       "title": "છંટકાવ માટે સારો સમય",
       "body": "આજે {start} થી {end} સુધી હવામાન સૂકું અને શાંત રહેશે — છંટકાવ માટે સારો સમય છે."
+    },
+    "mr": {
+      "title": "फवारणीसाठी चांगली वेळ",
+      "body": "आज {start} ते {end} या वेळेत हवामान कोरडे आणि शांत राहील — फवारणीसाठी चांगली वेळ आहे."
     }
   },
   "dry_spell_irrigate": {
@@ -43,6 +51,10 @@
     "gu": {
       "title": "આગળ સૂકું હવામાન",
       "body": "આગામી {days} દિવસ સુધી વરસાદની શક્યતા નથી — પિયત આપવાનું વિચારો."
+    },
+    "mr": {
+      "title": "पुढे कोरडे हवामान",
+      "body": "पुढील {days} दिवस पावसाची शक्यता नाही — पाणी देण्याचा विचार करा."
     }
   }
 }

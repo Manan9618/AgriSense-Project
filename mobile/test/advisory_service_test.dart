@@ -9,17 +9,33 @@ Future<List<String>> _loadClassNames() async {
   return (jsonDecode(json) as List).cast<String>();
 }
 
+/// Discovered from the bundled content file rather than hardcoded, so this
+/// test doesn't need editing every time a language is added (Week 11) —
+/// mirrors backend/core/tests/test_advisory_mapper.py's _expected_languages().
+Future<List<String>> _loadSupportedLanguages() async {
+  final json = await rootBundle.loadString(
+    'assets/content/treatment_recommendations.json',
+  );
+  final classes = jsonDecode(json) as Map<String, dynamic>;
+  final firstClass =
+      classes.entries.firstWhere((e) => !e.key.startsWith('_')).value
+          as Map<String, dynamic>;
+  return firstClass.keys.where((k) => k != 'urgency').toList();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'covers every class the model can predict, in all 3 languages',
+    'covers every class the model can predict, in every supported language',
     () async {
       final advisoryService = await AdvisoryService.load();
       final classNames = await _loadClassNames();
+      final languages = await _loadSupportedLanguages();
+      expect(languages, isNotEmpty);
 
       for (final classId in classNames) {
-        for (final language in ['en', 'hi', 'gu']) {
+        for (final language in languages) {
           final advisory = advisoryService.forClass(
             classId,
             language: language,

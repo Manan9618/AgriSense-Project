@@ -13,6 +13,10 @@
     "gu": {
       "title": "નજીકમાં સારો ભાવ",
       "body": "{market} માં {commodity} નો ભાવ ₹{price}/ક્વિન્ટલ છે — {worst_market} (₹{worst_price}/ક્વિન્ટલ) કરતાં {pct}% વધુ. વેચતા પહેલાં તપાસી લો."
+    },
+    "mr": {
+      "title": "जवळपास चांगला भाव",
+      "body": "{market} येथे {commodity} चा भाव ₹{price}/क्विंटल आहे — {worst_market} (₹{worst_price}/क्विंटल) पेक्षा {pct}% जास्त. विकण्यापूर्वी तपासा."
     }
   }
 }
