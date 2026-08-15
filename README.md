@@ -47,6 +47,11 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] Wired into the app's Diagnosis Result screen — real localized advice shown fully offline, no backend call
 - [x] Urgency levels (low/medium/high) drive the result screen's urgency badge and color
 
+### Week 6 — Weather Advisory Integration
+- [x] `WeatherProvider` abstraction + `OpenWeatherMapProvider` (`backend/core/weather_provider.py`) — no live API key in this environment, so tests use a fake provider + a mocked-response parsing test (`docs/adr/0007-weather-provider-abstraction.md`)
+- [x] `WeatherAdvisoryTool` rule engine (`backend/core/weather_advisory_tool.py`): rain-within-6h, good-spray-window, dry-spell-irrigate — localized into all 3 languages (`content/weather_advisory_templates.json`)
+- [x] 10 tests covering the rule engine (including rule-interaction and wind-exclusion edge cases) — backend-only this week, no API endpoint/mobile UI yet (see ADR 0007 for why)
+
 ## Backend quickstart
 
 ```bash

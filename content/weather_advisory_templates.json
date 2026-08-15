@@ -1,0 +1,48 @@
+{
+  "_comment": "Templates for core/weather_advisory_tool.py. {placeholders} filled in with Python str.format(). Times/day-counts aren't translated (numerals are shared across en/hi/gu), only the surrounding text is.",
+  "rain_expected_soon": {
+    "urgency": "high",
+    "en": {
+      "title": "Rain expected soon",
+      "body": "Rain expected around {time} — hold off spraying until it clears."
+    },
+    "hi": {
+      "title": "जल्द बारिश की संभावना",
+      "body": "लगभग {time} बजे बारिश की संभावना है — बारिश थमने तक छिड़काव न करें।"
+    },
+    "gu": {
+      "title": "ટૂંક સમયમાં વરસાદની શક્યતા",
+      "body": "લગભગ {time} વાગ્યે વરસાદની શક્યતા છે — વરસાદ બંધ થાય ત્યાં સુધી છંટકાવ ન કરો."
+    }
+  },
+  "good_spray_window": {
+    "urgency": "medium",
+    "en": {
+      "title": "Good spray window",
+      "body": "Dry and calm from {start} to {end} today — a good time to spray."
+    },
+    "hi": {
+      "title": "छिड़काव के लिए अच्छा समय",
+      "body": "आज {start} से {end} तक मौसम सूखा और शांत रहेगा — छिड़काव के लिए अच्छा समय है।"
+    },
+    "gu": {
+      "title": "છંટકાવ માટે સારો સમય",
+      "body": "આજે {start} થી {end} સુધી હવામાન સૂકું અને શાંત રહેશે — છંટકાવ માટે સારો સમય છે."
+    }
+  },
+  "dry_spell_irrigate": {
+    "urgency": "medium",
+    "en": {
+      "title": "Dry spell ahead",
+      "body": "No rain expected for the next {days} days — consider irrigating."
+    },
+    "hi": {
+      "title": "आगे सूखा मौसम",
+      "body": "अगले {days} दिनों तक बारिश की संभावना नहीं है — सिंचाई करने पर विचार करें।"
+    },
+    "gu": {
+      "title": "આગળ સૂકું હવામાન",
+      "body": "આગામી {days} દિવસ સુધી વરસાદની શક્યતા નથી — પિયત આપવાનું વિચારો."
+    }
+  }
+}

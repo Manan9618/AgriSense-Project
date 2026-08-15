@@ -1,56 +1,15 @@
-import shutil
-import tempfile
 import uuid
 from datetime import UTC, datetime
 
 from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.management import call_command
 from django.db import IntegrityError, transaction
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from core.advisory_mapper import NoRecommendationError, map_diagnosis_to_advisory
 from core.constants import DISEASE_CLASS_IDS, Urgency
 from core.models import Advisory, Diagnosis, Scan, TreatmentRecommendation
+from core.tests.helpers import MediaIsolatedTestCase, make_scan
 
 User = get_user_model()
-
-# 1x1 transparent PNG, used so ImageField validation has real image bytes to work with.
-TINY_PNG = (
-    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
-    b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
-)
-
-
-def make_scan(farmer, **overrides):
-    defaults = {
-        "farmer": farmer,
-        "image": SimpleUploadedFile("leaf.png", TINY_PNG, content_type="image/png"),
-        "captured_at": datetime(2026, 6, 1, 9, 30, tzinfo=UTC),
-        "language": "gu",
-    }
-    defaults.update(overrides)
-    return Scan.objects.create(**defaults)
-
-
-class MediaIsolatedTestCase(TestCase):
-    """Base for tests that create Scans: ImageField writes real files, and
-    TestCase only rolls back the DB — so route them to a throwaway MEDIA_ROOT
-    instead of littering the real media/ directory on every test run."""
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls._media_root = tempfile.mkdtemp(prefix="agrisense-test-media-")
-        cls._media_override = override_settings(MEDIA_ROOT=cls._media_root)
-        cls._media_override.enable()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls._media_override.disable()
-        shutil.rmtree(cls._media_root, ignore_errors=True)
-        super().tearDownClass()
 
 
 class ScanModelTests(MediaIsolatedTestCase):
@@ -188,60 +147,3 @@ class TreatmentRecommendationModelTests(TestCase):
         self.assertEqual(
             TreatmentRecommendation.objects.filter(class_id="tomato_healthy").count(), 2
         )
-
-
-class SeedTreatmentRecommendationsCommandTests(TestCase):
-    def test_seeds_every_class_in_all_three_languages(self):
-        call_command("seed_treatment_recommendations")
-
-        self.assertEqual(TreatmentRecommendation.objects.count(), len(DISEASE_CLASS_IDS) * 3)
-        for class_id in DISEASE_CLASS_IDS:
-            languages = set(
-                TreatmentRecommendation.objects.filter(class_id=class_id).values_list(
-                    "language", flat=True
-                )
-            )
-            self.assertEqual(languages, {"en", "hi", "gu"}, msg=f"incomplete for {class_id}")
-
-    def test_rerunning_is_idempotent(self):
-        call_command("seed_treatment_recommendations")
-        call_command("seed_treatment_recommendations")
-        self.assertEqual(TreatmentRecommendation.objects.count(), len(DISEASE_CLASS_IDS) * 3)
-
-
-class AdvisoryMapperTests(MediaIsolatedTestCase):
-    def setUp(self):
-        call_command("seed_treatment_recommendations")
-        self.farmer = User.objects.create_user(username="farmer4", password="x")
-        self.scan = make_scan(self.farmer, language="hi")
-        self.diagnosis = Diagnosis.objects.create(
-            scan=self.scan,
-            predicted_class="tomato_late_blight",
-            confidence=0.95,
-            model_version="v0.1.0",
-        )
-
-    def test_maps_diagnosis_to_localized_advisory(self):
-        advisory = map_diagnosis_to_advisory(self.diagnosis, language="hi")
-
-        self.assertEqual(advisory.kind, Advisory.Kind.TREATMENT)
-        self.assertEqual(advisory.diagnosis, self.diagnosis)
-        self.assertEqual(advisory.farmer, self.farmer)
-        self.assertEqual(advisory.language, "hi")
-        self.assertEqual(advisory.urgency, Urgency.HIGH)  # late blight is high-urgency
-        self.assertIn("झुलसा", advisory.title)
-
-    def test_falls_back_to_english_when_language_not_seeded(self):
-        TreatmentRecommendation.objects.filter(
-            class_id="tomato_late_blight", language="fr"
-        ).delete()  # never existed; proves the fallback path, not a no-op
-
-        advisory = map_diagnosis_to_advisory(self.diagnosis, language="fr")
-
-        self.assertEqual(advisory.language, "en")
-
-    def test_raises_when_no_recommendation_exists_for_the_class_at_all(self):
-        TreatmentRecommendation.objects.filter(class_id="tomato_late_blight").delete()
-
-        with self.assertRaises(NoRecommendationError):
-            map_diagnosis_to_advisory(self.diagnosis, language="hi")
