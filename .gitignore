@@ -26,6 +26,8 @@ ml/reports/
 *.ckpt
 *.pt
 *.keras
+# ...except the deployment copy the app actually bundles and ships with.
+!mobile/assets/models/*.tflite
 
 # Flutter / Dart
 mobile/.dart_tool/
@@ -48,3 +50,6 @@ mobile/*.iml
 
 # Logs
 *.log
+
+# Claude Code session-local state
+.claude/

@@ -11,7 +11,7 @@ implementation, phase by phase.
 ```
 backend/    Django API — farmer accounts, advisory orchestration, price/weather aggregation
 ml/         Model training pipeline — dataset prep, CV model training, TFLite conversion
-mobile/     Flutter app — camera capture, voice-first UI, offline sync (scaffolded Week 4)
+mobile/     Flutter app — camera capture, on-device diagnosis, voice-first UI, offline sync
 docs/       Class list, data model notes, ADRs, dataset card
 ```
 
@@ -34,6 +34,11 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] Model size: **2.63MB** (target <15MB)
 - [x] Accuracy retention validated: **95.20%** quantized vs 96.12% float (0.93pp drop, within 3% tolerance)
 - [x] Latency benchmarked: ~3ms mean (CPU proxy — see caveat in `docs/model-card.md`; real Android device benchmarking still needed)
+
+### Week 4 — App Shell
+- [x] Flutter app shell: camera capture flow, results screen, language selector (`docs/adr/0006-flutter-app-architecture.md`)
+- [x] TFLite model wired for on-device inference — verified with **real** inference in `flutter test` (not mocked), using the actual bundled quantized model against held-out test images
+- [x] Camera hardware itself isolated behind a `PhotoCaptureSource` interface and untested here (no device/emulator available) — see `mobile/README.md` for what's verified vs. not
 
 ## Backend quickstart
 
