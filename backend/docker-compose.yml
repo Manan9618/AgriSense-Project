@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # `${VAR:-}` still *sets* the container's env var to an empty string
+      # when unset on the host, which isn't the same as leaving it unset —
+      # Django 5.2 raises ImproperlyConfigured on an empty (as opposed to
+      # missing) SECRET_KEY, found while verifying this setup locally. The
+      # fallback here mirrors config/settings.py's own local-dev-only
+      # default; set a real DJANGO_SECRET_KEY (e.g. via a .env file next to
+      # this compose file) for anything beyond local use.
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-docker-compose-default-change-me}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DJANGO_DB_PATH: /app/backend/data/db.sqlite3
+      OPENWEATHERMAP_API_KEY: ${OPENWEATHERMAP_API_KEY:-}
+      DATA_GOV_IN_API_KEY: ${DATA_GOV_IN_API_KEY:-}
+    volumes:
+      # Directory mounts, not a file mount for the SQLite database: a
+      # single-file bind mount for a host path that doesn't exist yet gets
+      # created as a *directory* by Docker, which breaks SQLite in a
+      # confusing way (`unable to open database file`) — found while
+      # verifying this setup locally, see
+      # docs/adr/0017-dockerization-and-cicd.md. `./data/` and `./media/`
+      # are unambiguous directories either way.
+      - ./data:/app/backend/data
+      - ./media:/app/backend/media

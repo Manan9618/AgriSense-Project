@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -35,3 +36,100 @@ jobs:
           cache-dependency-path: backend/requirements-dev.txt
       - run: pip install -r requirements-dev.txt
       - run: python manage.py test
+
+  ml-test:
+    name: ML scripts tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ml/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      # ml/scripts/tests/ (Week 16) covers pure file-mechanics scripts
+      # (incorporate_feedback.py) with synthetic images, not model training
+      # — train.py/evaluate.py stay manually run, same as every prior week.
+      - run: pytest scripts/tests/
+
+  mobile-test:
+    name: Mobile analyze + tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter analyze
+      # Live-backend tests (test/*_live_backend_test.dart) self-skip here —
+      # no Django server is running in this job — same as any machine
+      # without one; see mobile/README.md.
+      - run: flutter test
+
+  docker-build:
+    name: Docker build + smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        # Build context is the repo root, not backend/ — see the comment
+        # at the top of backend/Dockerfile for why (content/ is a sibling
+        # directory this monorepo's backend depends on at runtime).
+        run: docker build -f backend/Dockerfile -t agrisense-backend:ci .
+      - name: Run container and wait for it to come up
+        run: |
+          docker run -d --name agrisense-ci -p 8000:8000 \
+            -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
+            agrisense-backend:ci
+          for i in $(seq 1 20); do
+            if curl -sf "http://127.0.0.1:8000/api/prices/compare/?commodity=Tomato&state=Gujarat" > /dev/null; then
+              echo "Backend responded after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Backend never became reachable"
+          exit 1
+      - name: Exercise the real API end-to-end (seed -> auto-suggested community answer)
+        run: |
+          curl -sf "http://127.0.0.1:8000/api/prices/compare/?commodity=Tomato&state=Gujarat" | grep -q is_sample_data
+          docker exec agrisense-ci python manage.py seed_treatment_recommendations
+          curl -sf -X POST "http://127.0.0.1:8000/api/community/questions/" \
+            -H "Content-Type: application/json" \
+            -d '{"device_id":"ci-smoke-test","crop":"tomato","symptom":"wilting","title":"CI smoke test","language":"en"}' \
+            | grep -q is_auto_suggested
+      - name: Run the backend test suite inside the built image
+        run: docker exec agrisense-ci python manage.py test
+      - name: Container logs
+        if: always()
+        run: docker logs agrisense-ci
+
+  # Manual-trigger only (never on push/PR) and credential-gated: there is no
+  # deployed backend yet (Week 18 is Dockerization, not a live deployment —
+  # see docs/adr/0017-dockerization-and-cicd.md), so this stops at checking
+  # for real deploy credentials rather than guessing at a target. Wiring
+  # this up for real is future work, once an actual hosting target and its
+  # secrets exist.
+  deploy:
+    name: Deploy (manual, credential-gated)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: [lint, backend-test, docker-build]
+    steps:
+      - name: Check for deploy credentials
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$DEPLOY_HOST" ]; then
+            echo "::warning::No DEPLOY_HOST secret configured — there is no real deployment target yet. Stopping here rather than deploying to nowhere; see docs/adr/0017-dockerization-and-cicd.md."
+            exit 0
+          fi
+          echo "DEPLOY_HOST is configured — the real deploy steps (push image to a registry, trigger the host to pull + restart) go here once that target exists."

@@ -81,7 +81,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        # Overridable so Docker (Week 18) can point this at a bind-mounted
+        # *directory* instead — a single-file bind mount for a path that
+        # doesn't exist yet on the host gets created as a directory by
+        # Docker, not a file, which silently breaks SQLite. A mounted
+        # directory has no such ambiguity. Unset (the default) keeps local
+        # `manage.py runserver` behavior unchanged.
+        "NAME": os.environ.get("DJANGO_DB_PATH", str(BASE_DIR / "db.sqlite3")),
     }
 }
 
@@ -121,6 +127,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Media files (farmer-uploaded scan photos)
 MEDIA_URL = "media/"

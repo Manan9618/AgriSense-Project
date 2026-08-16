@@ -121,6 +121,13 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] Found and fixed two genuinely dead `copyWith()` methods (deleted, not tested-for-their-own-sake) and a real bug: Marathi voice commands silently never matched anything since Week 11 added the language without updating `voice_command_parser.dart`'s keyword map — both caught during the coverage sweep, not by a pre-existing test
 - [x] Full writeup: `docs/testing-coverage.md`, including a test-isolation bug the sweep itself ran into (an ambiguous `pumpUntilFound` finder that matched the wrong widget) and how it was fixed
 
+### Week 18 — Dockerization & CI/CD
+- [x] `backend/Dockerfile` + `docker-compose.yml`, built from the repo root (not `backend/`) since the seed command needs the sibling `content/` directory — see `docs/adr/0017-dockerization-and-cicd.md`
+- [x] Verified locally, not just written: `docker compose up --build` → real HTTP requests against `/api/prices/compare/` and `/api/community/questions/` → seeded data and an auto-suggested answer came back correctly → data survived a container restart
+- [x] Two real bugs found only by that verification, both fixed: a file-vs-directory bind-mount mismatch that silently broke SQLite (`unable to open database file`), and a Compose `${VAR:-}` default that still set `DJANGO_SECRET_KEY` to an empty string instead of leaving it unset, tripping Django 5.2's "must not be empty" check
+- [x] CI extended with `ml-test`, `mobile-test`, and `docker-build` jobs (none of the ML pytest suite, mobile test suite, or a Docker build had ever run in CI before) — `docker-build`'s smoke test repeats the same build → run → seed → hit-a-real-endpoint sequence verified locally
+- [x] A `deploy` job exists, `workflow_dispatch`-only and gated on a `DEPLOY_HOST` secret that doesn't exist yet — it stops with a clear message rather than deploying to a target this project doesn't have, since there's still no real hosting (`docs/pilot/pilot-launch-readiness.md`)
+
 ## Backend quickstart
 
 ```bash
@@ -131,6 +138,18 @@ python manage.py migrate
 python manage.py seed_treatment_recommendations
 python manage.py test
 ```
+
+### Running via Docker instead
+
+```bash
+cd backend
+docker compose up --build   # or: docker-compose up --build
+docker compose exec backend python manage.py seed_treatment_recommendations
+```
+
+Build context is the repo root (`content/` is a sibling directory the seed command needs — see
+`docs/adr/0017-dockerization-and-cicd.md`), which `docker-compose.yml` already points at; you don't
+need to `cd` anywhere else. SQLite persists in `backend/data/` (gitignored) across restarts.
 
 ## ML pipeline quickstart
 

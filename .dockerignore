@@ -1,0 +1,24 @@
+# Build context is the repo root (see backend/Dockerfile) — only backend/
+# and content/ are actually needed in the image; everything else here just
+# keeps the build context (and therefore build time) small.
+.git/
+.github/
+ml/
+mobile/
+docs/
+*.md
+AgriSense_AI_24Week_Full_Plan.pdf
+
+backend/.venv/
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/.env
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/.coverage
+backend/htmlcov/

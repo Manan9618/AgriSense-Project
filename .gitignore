@@ -15,6 +15,7 @@ htmlcov/
 # Django
 backend/staticfiles/
 backend/media/
+backend/data/
 local_settings.py
 
 # ML / datasets — large binary data is not committed, only fetch scripts + manifests
