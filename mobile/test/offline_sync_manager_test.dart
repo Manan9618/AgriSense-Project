@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:agrisense_ai/models/diagnosis_prediction.dart';
+import 'package:agrisense_ai/models/feedback_record.dart';
 import 'package:agrisense_ai/models/scan_record.dart';
+import 'package:agrisense_ai/services/feedback_repository.dart';
 import 'package:agrisense_ai/services/local_database.dart';
 import 'package:agrisense_ai/services/offline_sync_manager.dart';
 import 'package:agrisense_ai/services/scan_repository.dart';
@@ -9,15 +11,17 @@ import 'package:agrisense_ai/services/sync_backend.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Fake backend that fails for specific scan ids and records what it was
-/// called with — lets tests verify per-item failure handling without a
-/// real network call.
+/// Fake backend that fails for specific scan/feedback ids and records what
+/// it was called with — lets tests verify per-item failure handling
+/// without a real network call.
 class FakeSyncBackend implements SyncBackend {
-  FakeSyncBackend({this.failForIds = const {}});
+  FakeSyncBackend({this.failForIds = const {}, this.failForFeedbackIds = const {}});
 
   final Set<String> failForIds;
+  final Set<String> failForFeedbackIds;
   final List<String> pushedScanIds = [];
   final List<String> deviceIdsSeen = [];
+  final List<String> pushedFeedbackIds = [];
 
   @override
   Future<void> pushScan(ScanRecord scan, {required String deviceId}) async {
@@ -26,6 +30,14 @@ class FakeSyncBackend implements SyncBackend {
       throw SyncBackendException('simulated failure for ${scan.id}');
     }
     pushedScanIds.add(scan.id);
+  }
+
+  @override
+  Future<void> pushFeedback(FeedbackRecord feedback) async {
+    if (failForFeedbackIds.contains(feedback.id)) {
+      throw SyncBackendException('simulated failure for ${feedback.id}');
+    }
+    pushedFeedbackIds.add(feedback.id);
   }
 }
 
@@ -38,12 +50,14 @@ void main() {
   late Directory tempDir;
   late LocalDatabase database;
   late ScanRepository repository;
+  late FeedbackRepository feedbackRepository;
   late File sourcePhoto;
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('agrisense_sync_test_');
     database = await LocalDatabase.open(inMemoryDatabasePath);
     repository = ScanRepository(database: database, storageDirectory: tempDir);
+    feedbackRepository = FeedbackRepository(database: database);
     sourcePhoto = File('${tempDir.path}/capture.jpg')
       ..writeAsBytesSync([9, 9, 9]);
   });
@@ -188,5 +202,57 @@ void main() {
     ).syncPending();
 
     expect(backend.deviceIdsSeen.toSet(), hasLength(1));
+  });
+
+  test('pending feedback is synced alongside scans', () async {
+    final scan = await repository.saveScan(
+      capturedImagePath: sourcePhoto.path,
+      prediction: const DiagnosisPrediction(
+        classId: 'tomato_late_blight',
+        confidence: 0.9,
+      ),
+      language: 'en',
+    );
+    final feedback = await feedbackRepository.submitFeedback(
+      scanId: scan.id,
+      diagnosisAccuracy: DiagnosisAccuracy.correct,
+      treatmentOutcome: TreatmentOutcome.helped,
+    );
+
+    final backend = FakeSyncBackend();
+    final summary = await OfflineSyncManager(
+      database: database,
+      backend: backend,
+    ).syncPending();
+
+    expect(backend.pushedFeedbackIds, [feedback.id]);
+    expect(summary.syncedCount, 2); // 1 scan + 1 feedback
+    expect(await database.getPendingFeedback(), isEmpty);
+  });
+
+  test('a failed feedback upload stays pending independently of scans', () async {
+    final scan = await repository.saveScan(
+      capturedImagePath: sourcePhoto.path,
+      prediction: const DiagnosisPrediction(
+        classId: 'tomato_healthy',
+        confidence: 0.9,
+      ),
+      language: 'en',
+    );
+    final feedback = await feedbackRepository.submitFeedback(
+      scanId: scan.id,
+      diagnosisAccuracy: DiagnosisAccuracy.unsure,
+    );
+
+    final backend = FakeSyncBackend(failForFeedbackIds: {feedback.id});
+    final summary = await OfflineSyncManager(
+      database: database,
+      backend: backend,
+    ).syncPending();
+
+    expect(summary.syncedCount, 1); // the scan
+    expect(summary.failedCount, 1); // the feedback
+    final pending = await database.getPendingFeedback();
+    expect(pending.map((f) => f.id), [feedback.id]);
   });
 }

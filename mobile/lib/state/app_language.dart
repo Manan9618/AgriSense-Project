@@ -98,6 +98,20 @@ class AppStrings {
     'syncSuccess': 'Synced {count} scan(s)',
     'syncPartialFailure': '{synced} synced, {failed} will retry later',
     'allSynced': 'All scans synced',
+    'giveFeedback': 'Give Feedback',
+    'feedbackAlreadySubmitted': 'Thanks — feedback recorded',
+    'feedbackDiagnosisQuestion': 'Was this diagnosis correct?',
+    'feedbackAccuracyCorrect': 'Yes',
+    'feedbackAccuracyIncorrect': 'No',
+    'feedbackAccuracyUnsure': 'Not sure',
+    'feedbackTreatmentQuestion': 'Did the treatment help?',
+    'feedbackOutcomeHelped': 'Helped',
+    'feedbackOutcomeNoChange': 'No change yet',
+    'feedbackOutcomeWorsened': 'Got worse',
+    'feedbackOutcomeNotApplicable': 'No treatment applied',
+    'feedbackNotesHint': 'Additional notes (optional)',
+    'submitFeedback': 'Submit',
+    'feedbackThanks': 'Thank you for your feedback',
   };
 
   static const _hi = {
@@ -140,6 +154,20 @@ class AppStrings {
     'syncSuccess': '{count} स्कैन सिंक हो गए',
     'syncPartialFailure': '{synced} सिंक हुए, {failed} बाद में फिर कोशिश होगी',
     'allSynced': 'सभी स्कैन सिंक हो चुके हैं',
+    'giveFeedback': 'प्रतिक्रिया दें',
+    'feedbackAlreadySubmitted': 'धन्यवाद — प्रतिक्रिया दर्ज हो गई',
+    'feedbackDiagnosisQuestion': 'क्या यह निदान सही था?',
+    'feedbackAccuracyCorrect': 'हाँ',
+    'feedbackAccuracyIncorrect': 'नहीं',
+    'feedbackAccuracyUnsure': 'पता नहीं',
+    'feedbackTreatmentQuestion': 'क्या उपचार से फ़ायदा हुआ?',
+    'feedbackOutcomeHelped': 'फ़ायदा हुआ',
+    'feedbackOutcomeNoChange': 'अभी कोई बदलाव नहीं',
+    'feedbackOutcomeWorsened': 'बिगड़ गया',
+    'feedbackOutcomeNotApplicable': 'कोई उपचार नहीं किया',
+    'feedbackNotesHint': 'अतिरिक्त टिप्पणी (वैकल्पिक)',
+    'submitFeedback': 'भेजें',
+    'feedbackThanks': 'आपकी प्रतिक्रिया के लिए धन्यवाद',
   };
 
   static const _gu = {
@@ -182,6 +210,20 @@ class AppStrings {
     'syncSuccess': '{count} સ્કેન સિંક થયા',
     'syncPartialFailure': '{synced} સિંક થયા, {failed} પછી ફરી પ્રયાસ થશે',
     'allSynced': 'બધા સ્કેન સિંક થઈ ગયા',
+    'giveFeedback': 'પ્રતિભાવ આપો',
+    'feedbackAlreadySubmitted': 'આભાર — પ્રતિભાવ નોંધાયો',
+    'feedbackDiagnosisQuestion': 'શું આ નિદાન સાચું હતું?',
+    'feedbackAccuracyCorrect': 'હા',
+    'feedbackAccuracyIncorrect': 'ના',
+    'feedbackAccuracyUnsure': 'ખબર નથી',
+    'feedbackTreatmentQuestion': 'શું સારવારથી ફાયદો થયો?',
+    'feedbackOutcomeHelped': 'ફાયદો થયો',
+    'feedbackOutcomeNoChange': 'હજુ કોઈ ફેરફાર નથી',
+    'feedbackOutcomeWorsened': 'બગડ્યું',
+    'feedbackOutcomeNotApplicable': 'કોઈ સારવાર કરી નથી',
+    'feedbackNotesHint': 'વધારાની નોંધ (વૈકલ્પિક)',
+    'submitFeedback': 'મોકલો',
+    'feedbackThanks': 'તમારા પ્રતિભાવ બદલ આભાર',
   };
 
   static const _mr = {
@@ -224,6 +266,20 @@ class AppStrings {
     'syncSuccess': '{count} स्कॅन सिंक झाले',
     'syncPartialFailure': '{synced} सिंक झाले, {failed} नंतर पुन्हा प्रयत्न होईल',
     'allSynced': 'सर्व स्कॅन सिंक झाले',
+    'giveFeedback': 'अभिप्राय द्या',
+    'feedbackAlreadySubmitted': 'धन्यवाद — अभिप्राय नोंदवला गेला',
+    'feedbackDiagnosisQuestion': 'हे निदान बरोबर होते का?',
+    'feedbackAccuracyCorrect': 'होय',
+    'feedbackAccuracyIncorrect': 'नाही',
+    'feedbackAccuracyUnsure': 'माहीत नाही',
+    'feedbackTreatmentQuestion': 'उपचाराचा फायदा झाला का?',
+    'feedbackOutcomeHelped': 'फायदा झाला',
+    'feedbackOutcomeNoChange': 'अजून काही बदल नाही',
+    'feedbackOutcomeWorsened': 'अधिक बिघडले',
+    'feedbackOutcomeNotApplicable': 'कोणताही उपचार केला नाही',
+    'feedbackNotesHint': 'अतिरिक्त टीप (ऐच्छिक)',
+    'submitFeedback': 'पाठवा',
+    'feedbackThanks': 'तुमच्या अभिप्रायाबद्दल धन्यवाद',
   };
 
   static const Map<AppLanguage, AppStrings> _byLanguage = {

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:agrisense_ai/models/diagnosis_prediction.dart';
+import 'package:agrisense_ai/models/feedback_record.dart';
 import 'package:agrisense_ai/models/scan_record.dart';
 import 'package:agrisense_ai/services/local_database.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,5 +103,52 @@ void main() {
     await File(path).delete();
 
     expect(reopenedId, id);
+  });
+
+  FeedbackRecord makeFeedback({
+    String id = 'feedback-1',
+    String scanId = 'scan-1',
+    String diagnosisAccuracy = DiagnosisAccuracy.correct,
+  }) {
+    return FeedbackRecord(
+      id: id,
+      scanId: scanId,
+      diagnosisAccuracy: diagnosisAccuracy,
+      treatmentOutcome: TreatmentOutcome.helped,
+      notes: 'Cleared up within a week.',
+      createdAt: DateTime(2026, 6, 5, 8, 0),
+    );
+  }
+
+  test('a newly inserted feedback entry round-trips correctly', () async {
+    await db.insertFeedback(makeFeedback());
+
+    final pending = await db.getPendingFeedback();
+
+    expect(pending, hasLength(1));
+    expect(pending.first.scanId, 'scan-1');
+    expect(pending.first.diagnosisAccuracy, DiagnosisAccuracy.correct);
+    expect(pending.first.treatmentOutcome, TreatmentOutcome.helped);
+    expect(pending.first.notes, 'Cleared up within a week.');
+    expect(pending.first.isSynced, isFalse);
+  });
+
+  test('getPendingFeedback only returns unsynced entries', () async {
+    await db.insertFeedback(makeFeedback(id: 'pending'));
+    await db.insertFeedback(makeFeedback(id: 'synced'));
+    await db.markFeedbackSynced('synced', DateTime(2026, 6, 6));
+
+    final pending = await db.getPendingFeedback();
+
+    expect(pending.map((f) => f.id).toList(), ['pending']);
+  });
+
+  test('hasFeedbackForScan reflects whether feedback was recorded', () async {
+    expect(await db.hasFeedbackForScan('scan-1'), isFalse);
+
+    await db.insertFeedback(makeFeedback(scanId: 'scan-1'));
+
+    expect(await db.hasFeedbackForScan('scan-1'), isTrue);
+    expect(await db.hasFeedbackForScan('scan-2'), isFalse);
   });
 }

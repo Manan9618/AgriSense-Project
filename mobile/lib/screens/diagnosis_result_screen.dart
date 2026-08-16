@@ -5,28 +5,35 @@ import 'package:provider/provider.dart';
 
 import '../models/scan_record.dart';
 import '../services/advisory_service.dart';
+import '../services/feedback_repository.dart';
 import '../services/tts_service.dart';
 import '../state/app_language.dart';
 import '../state/language_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback_sheet.dart';
 import '../widgets/stat_badge.dart';
 
 /// Diagnosis result screen — layout matches the project plan's sample UI
 /// (Section 6): confidence/crop/urgency badges, a detected-condition card,
 /// a treatment section with real localized advice (Week 5's AdvisoryMapper
-/// content, bundled offline), and TTS readback via the "Hear Advice in
-/// {language}" button (Week 8).
+/// content, bundled offline), TTS readback via the "Hear Advice in
+/// {language}" button (Week 8), and a feedback entry point (Week 12,
+/// FeedbackCollector) — reachable here since a farmer revisits a past
+/// scan from Recent Scans once they actually know whether the treatment
+/// worked, not necessarily right after capture.
 class DiagnosisResultScreen extends StatelessWidget {
   const DiagnosisResultScreen({
     super.key,
     required this.scan,
     required this.advisoryService,
     required this.ttsService,
+    required this.feedbackRepository,
   });
 
   final ScanRecord scan;
   final AdvisoryService advisoryService;
   final TtsService ttsService;
+  final FeedbackRepository feedbackRepository;
 
   Color _urgencyColor(String urgency) {
     switch (urgency) {
@@ -176,9 +183,87 @@ class DiagnosisResultScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            _FeedbackSection(
+              scanId: scan.id,
+              showTreatmentQuestion: !scan.isHealthy,
+              feedbackRepository: feedbackRepository,
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FeedbackSection extends StatefulWidget {
+  const _FeedbackSection({
+    required this.scanId,
+    required this.showTreatmentQuestion,
+    required this.feedbackRepository,
+  });
+
+  final String scanId;
+  final bool showTreatmentQuestion;
+  final FeedbackRepository feedbackRepository;
+
+  @override
+  State<_FeedbackSection> createState() => _FeedbackSectionState();
+}
+
+class _FeedbackSectionState extends State<_FeedbackSection> {
+  late Future<bool> _hasFeedbackFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasFeedbackFuture = widget.feedbackRepository.hasFeedback(widget.scanId);
+  }
+
+  Future<void> _openFeedbackSheet() async {
+    final submitted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => FeedbackSheet(
+        scanId: widget.scanId,
+        showTreatmentQuestion: widget.showTreatmentQuestion,
+        feedbackRepository: widget.feedbackRepository,
+      ),
+    );
+    if (submitted == true && mounted) {
+      setState(() {
+        _hasFeedbackFuture = Future.value(true);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.watch<LanguageProvider>().strings;
+
+    return FutureBuilder<bool>(
+      future: _hasFeedbackFuture,
+      builder: (context, snapshot) {
+        if (snapshot.data == true) {
+          return Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: AppTheme.primaryGreen,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Text(strings['feedbackAlreadySubmitted']),
+            ],
+          );
+        }
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        return OutlinedButton.icon(
+          onPressed: isLoading ? null : _openFeedbackSheet,
+          icon: const Icon(Icons.rate_review_outlined),
+          label: Text(strings['giveFeedback']),
+        );
+      },
     );
   }
 }

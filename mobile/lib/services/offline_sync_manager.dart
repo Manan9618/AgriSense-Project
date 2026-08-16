@@ -42,6 +42,22 @@ class OfflineSyncManager {
       }
     }
 
+    // Feedback after scans, deliberately: FeedbackSyncView resolves a
+    // Diagnosis from scan_id server-side, so feedback for a scan that
+    // hasn't synced yet would 404 — syncing scans first in the same pass
+    // gives same-session feedback its best chance of going through
+    // immediately rather than waiting for the next "Sync Now".
+    final pendingFeedback = await database.getPendingFeedback();
+    for (final feedback in pendingFeedback) {
+      try {
+        await backend.pushFeedback(feedback);
+        await database.markFeedbackSynced(feedback.id, DateTime.now());
+        syncedCount++;
+      } on SyncBackendException {
+        failedCount++;
+      }
+    }
+
     return SyncSummary(syncedCount: syncedCount, failedCount: failedCount);
   }
 }

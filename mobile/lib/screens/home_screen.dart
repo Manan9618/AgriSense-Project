@@ -72,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
           scan: result,
           advisoryService: widget.services.advisoryService,
           ttsService: widget.services.ttsService,
+          feedbackRepository: widget.services.feedbackRepository,
         ),
       ),
     );
@@ -84,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
           scan: scan,
           advisoryService: widget.services.advisoryService,
           ttsService: widget.services.ttsService,
+          feedbackRepository: widget.services.feedbackRepository,
         ),
       ),
     );

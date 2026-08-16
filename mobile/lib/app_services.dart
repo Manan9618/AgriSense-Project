@@ -1,4 +1,5 @@
 import 'services/advisory_service.dart';
+import 'services/feedback_repository.dart';
 import 'services/inference_service.dart';
 import 'services/local_database.dart';
 import 'services/offline_sync_manager.dart';
@@ -22,6 +23,7 @@ class AppServices {
     required this.localDatabase,
     required this.scanRepository,
     required this.syncManager,
+    required this.feedbackRepository,
   });
 
   final InferenceService inferenceService;
@@ -39,4 +41,7 @@ class AppServices {
 
   final ScanRepository scanRepository;
   final OfflineSyncManager syncManager;
+
+  /// Week 12: FeedbackCollector's local-write side (docs/classes.md).
+  final FeedbackRepository feedbackRepository;
 }

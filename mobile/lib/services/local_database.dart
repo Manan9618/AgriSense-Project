@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/diagnosis_prediction.dart';
+import '../models/feedback_record.dart';
 import '../models/scan_record.dart';
 
 /// SQLite-backed local cache (Week 9, OfflineSyncManager component —
@@ -17,7 +18,7 @@ class LocalDatabase {
   static Future<LocalDatabase> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE scans (
@@ -34,9 +35,30 @@ class LocalDatabase {
         await db.execute(
           'CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)',
         );
+        await _createFeedbackTable(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        // Week 12: existing installs at version 1 only have scans/meta.
+        if (oldVersion < 2) {
+          await _createFeedbackTable(db);
+        }
       },
     );
     return LocalDatabase._(db);
+  }
+
+  static Future<void> _createFeedbackTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE feedback (
+        id TEXT PRIMARY KEY,
+        scan_id TEXT NOT NULL,
+        diagnosis_accuracy TEXT NOT NULL,
+        treatment_outcome TEXT NOT NULL,
+        notes TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        synced_at TEXT
+      )
+    ''');
   }
 
   Future<void> insertScan(ScanRecord scan) async {
@@ -95,7 +117,63 @@ class LocalDatabase {
     return id;
   }
 
+  Future<void> insertFeedback(FeedbackRecord feedback) async {
+    await _db.insert('feedback', {
+      'id': feedback.id,
+      'scan_id': feedback.scanId,
+      'diagnosis_accuracy': feedback.diagnosisAccuracy,
+      'treatment_outcome': feedback.treatmentOutcome,
+      'notes': feedback.notes,
+      'created_at': feedback.createdAt.toIso8601String(),
+      'synced_at': feedback.syncedAt?.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<FeedbackRecord>> getPendingFeedback() async {
+    final rows = await _db.query(
+      'feedback',
+      where: 'synced_at IS NULL',
+      orderBy: 'created_at ASC',
+    );
+    return rows.map(_feedbackFromRow).toList();
+  }
+
+  /// Whether this scan already has feedback recorded — used to show "thank
+  /// you, already submitted" instead of asking the farmer twice.
+  Future<bool> hasFeedbackForScan(String scanId) async {
+    final rows = await _db.query(
+      'feedback',
+      where: 'scan_id = ?',
+      whereArgs: [scanId],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
+  Future<void> markFeedbackSynced(String id, DateTime syncedAt) async {
+    await _db.update(
+      'feedback',
+      {'synced_at': syncedAt.toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<void> close() => _db.close();
+
+  FeedbackRecord _feedbackFromRow(Map<String, Object?> row) {
+    return FeedbackRecord(
+      id: row['id'] as String,
+      scanId: row['scan_id'] as String,
+      diagnosisAccuracy: row['diagnosis_accuracy'] as String,
+      treatmentOutcome: row['treatment_outcome'] as String,
+      notes: row['notes'] as String,
+      createdAt: DateTime.parse(row['created_at'] as String),
+      syncedAt: row['synced_at'] == null
+          ? null
+          : DateTime.parse(row['synced_at'] as String),
+    );
+  }
 
   ScanRecord _scanFromRow(Map<String, Object?> row) {
     return ScanRecord(

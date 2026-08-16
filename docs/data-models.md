@@ -36,12 +36,19 @@ diagnosis at all.
 See `docs/adr/0001-monorepo-structure.md` for the repo-layout reasoning and
 `docs/adr/0002-class-list-scope.md` for why `Diagnosis.predicted_class` is scoped to 10 classes.
 
-## Deferred to later weeks (not in scope for Week 1)
+## Feedback
 
-- **Farmer profile** — Scan/Advisory currently reference Django's built-in `User`. A richer
-  Farmer model (phone number as primary identity for SMS/IVR, village, preferred language) is
-  needed once Week 10 (SMS/voice fallback) and Week 13 (pilot onboarding) land, since feature-phone
-  farmers won't have an app-based account.
-- **Feedback / outcome tracking** — Week 12's `FeedbackCollector` ("did this treatment work?")
-  gets its own model rather than a field bolted onto `Diagnosis`, once that week's retraining
-  pipeline design is underway.
+A farmer-confirmed outcome for a `Diagnosis` (Week 12, `FeedbackCollector` — see
+`docs/adr/0013-model-feedback-loop.md`). `ForeignKey` to `Diagnosis`, not `Scan`, since feedback is
+about a specific prediction. Its own model rather than fields on `Diagnosis`: feedback typically
+arrives well after the diagnosis (a farmer only knows whether a treatment helped once it's had
+days to act), and a diagnosis could in principle receive more than one round of feedback.
+`diagnosis_accuracy` is always present; `treatment_outcome` is blank when the diagnosis was
+"healthy" (nothing to treat).
+
+## Deferred to later weeks (not in scope yet)
+
+- **Farmer profile** — Scan/Advisory/Feedback currently reference Django's built-in `User`. A
+  richer Farmer model (phone number as primary identity for SMS/IVR, village, preferred language)
+  is needed once Week 13 (pilot onboarding) lands, since feature-phone farmers won't have an
+  app-based account.

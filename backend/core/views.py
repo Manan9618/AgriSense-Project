@@ -21,10 +21,10 @@ from core.fallback_diagnosis import (
     class_for_choice,
     get_treatment_text,
 )
-from core.models import Diagnosis, Scan
+from core.models import Diagnosis, Feedback, Scan
 from core.price_comparator import compare_prices
 from core.price_provider import AgmarknetProvider, SampleMandiPriceProvider
-from core.serializers import MandiPriceSerializer, ScanSyncSerializer
+from core.serializers import FeedbackSyncSerializer, MandiPriceSerializer, ScanSyncSerializer
 from core.sms_fallback_handler import handle_sms_message
 
 User = get_user_model()
@@ -105,6 +105,57 @@ class ScanSyncView(APIView):
 
         return Response(
             {"id": str(scan.id), "synced_at": scan.synced_at, "created": created},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+
+class FeedbackSyncView(APIView):
+    """POST /api/sync/feedback/ (JSON) — FeedbackCollector's sync target
+    (Week 12, docs/classes.md: "farmer-confirmed outcome -> feeds
+    retraining pipeline").
+
+    Resolves the Diagnosis lazily from `scan_id` (the most recent Diagnosis
+    for that scan) rather than requiring the client to know a server-side
+    diagnosis id, since ScanSyncView never hands one back. Returns 404 if
+    the scan itself hasn't synced yet — feedback for an offline-only scan
+    has to wait for that scan to sync first (OfflineSyncManager syncs scans
+    before feedback for exactly this reason). Idempotent by `id`, same
+    pattern as ScanSyncView.
+    """
+
+    def post(self, request: Request) -> Response:
+        serializer = FeedbackSyncSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            scan = Scan.objects.get(id=data["scan_id"])
+        except Scan.DoesNotExist:
+            return Response(
+                {"error": "scan not found — sync the scan before its feedback"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        diagnosis = scan.diagnoses.order_by("-created_at").first()
+        if diagnosis is None:
+            return Response(
+                {"error": "no diagnosis exists yet for this scan"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        feedback, created = Feedback.objects.get_or_create(
+            id=data["id"],
+            defaults={
+                "diagnosis": diagnosis,
+                "farmer": scan.farmer,
+                "diagnosis_accuracy": data["diagnosis_accuracy"],
+                "treatment_outcome": data["treatment_outcome"],
+                "notes": data["notes"],
+            },
+        )
+
+        return Response(
+            {"id": str(feedback.id), "created": created},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
 

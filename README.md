@@ -84,6 +84,13 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] All three shared content files (`treatment_recommendations.json`, `weather_advisory_templates.json`, `price_advisory_templates.json`) now have full `en`/`hi`/`gu`/`mr` coverage for every entry
 - [x] 1 new mobile test assertion (Marathi selection in `home_screen_flow_test.dart`), `advisory_service_test.dart` now iterates the discovered language set instead of a hardcoded 3 (48 mobile tests total, 2 self-skipping); backend stays at 75 tests (assertions strengthened, no new test count) with the seed command now producing 40 rows (10 classes × 4 languages)
 
+### Week 12 — Model Feedback Loop
+- [x] `Feedback` model (`backend/core/models.py`): farmer-confirmed diagnosis accuracy + treatment outcome, its own model FK'd to `Diagnosis` rather than fields on it — see `docs/adr/0013-model-feedback-loop.md`
+- [x] `POST /api/sync/feedback/` (`FeedbackSyncView`) resolves the diagnosis from `scan_id` (the only id the client ever has) and is idempotent by client-generated id, same pattern as Week 9's scan sync
+- [x] Mobile: `FeedbackSheet` + `_FeedbackSection` on the Diagnosis Result screen (reachable from a past scan, not just right after capture), offline-first via a new `feedback` SQLite table (`LocalDatabase` bumped to schema v2 with a real `onUpgrade` path) and synced by `OfflineSyncManager` alongside scans
+- [x] `export_retraining_candidates` management command: a real, tested CSV export of feedback flagged "incorrect" for human review — the actual retraining pipeline is deliberately just this today, since no real pilot feedback exists yet (Weeks 13/15/16 are still ahead)
+- [x] 13 new backend tests (88 total); 10 new mobile tests across `local_database_test.dart`, `offline_sync_manager_test.dart`, a new `diagnosis_result_feedback_test.dart`, and a self-skipping `feedback_sync_backend_live_backend_test.dart` (60 mobile tests total, 4 self-skipping) — the live-backend ones were also run for real against a running `manage.py runserver` and pass genuinely, not just in the self-skip path
+
 ## Backend quickstart
 
 ```bash

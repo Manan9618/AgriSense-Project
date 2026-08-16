@@ -6,7 +6,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from core.constants import DISEASE_CLASS_IDS, Urgency
-from core.models import Advisory, Diagnosis, Scan, TreatmentRecommendation
+from core.models import Advisory, Diagnosis, Feedback, Scan, TreatmentRecommendation
 from core.tests.helpers import MediaIsolatedTestCase, make_scan
 
 User = get_user_model()
@@ -109,6 +109,55 @@ class AdvisoryModelTests(MediaIsolatedTestCase):
         )
         self.assertIsNone(advisory.delivered_at)
         self.assertIsNone(advisory.delivered_via)
+
+
+class FeedbackModelTests(MediaIsolatedTestCase):
+    def setUp(self):
+        self.farmer = User.objects.create_user(username="farmer5", password="x")
+        self.scan = make_scan(self.farmer)
+        self.diagnosis = Diagnosis.objects.create(
+            scan=self.scan,
+            predicted_class="tomato_late_blight",
+            confidence=0.95,
+            model_version="v0.1.0",
+        )
+
+    def test_treatment_outcome_and_notes_are_optional(self):
+        feedback = Feedback.objects.create(
+            diagnosis=self.diagnosis,
+            farmer=self.farmer,
+            diagnosis_accuracy=Feedback.DiagnosisAccuracy.CORRECT,
+        )
+        self.assertEqual(feedback.treatment_outcome, "")
+        self.assertEqual(feedback.notes, "")
+
+    def test_a_diagnosis_can_have_multiple_feedback_entries(self):
+        Feedback.objects.create(
+            diagnosis=self.diagnosis,
+            farmer=self.farmer,
+            diagnosis_accuracy=Feedback.DiagnosisAccuracy.CORRECT,
+            treatment_outcome=Feedback.TreatmentOutcome.NO_CHANGE,
+        )
+        Feedback.objects.create(
+            diagnosis=self.diagnosis,
+            farmer=self.farmer,
+            diagnosis_accuracy=Feedback.DiagnosisAccuracy.CORRECT,
+            treatment_outcome=Feedback.TreatmentOutcome.HELPED,
+        )
+        self.assertEqual(self.diagnosis.feedback_entries.count(), 2)
+
+    def test_newest_feedback_ordered_first(self):
+        older = Feedback.objects.create(
+            diagnosis=self.diagnosis,
+            farmer=self.farmer,
+            diagnosis_accuracy=Feedback.DiagnosisAccuracy.UNSURE,
+        )
+        newer = Feedback.objects.create(
+            diagnosis=self.diagnosis,
+            farmer=self.farmer,
+            diagnosis_accuracy=Feedback.DiagnosisAccuracy.INCORRECT,
+        )
+        self.assertEqual(list(Feedback.objects.all()), [newer, older])
 
 
 class TreatmentRecommendationModelTests(TestCase):

@@ -175,3 +175,52 @@ class SmsSession(models.Model):
 
     def __str__(self):
         return f"{self.phone_number} ({self.state})"
+
+
+class Feedback(models.Model):
+    """A farmer-confirmed outcome for a Diagnosis (Week 12, FeedbackCollector
+    component — docs/classes.md: "farmer-confirmed outcome -> feeds
+    retraining pipeline").
+
+    Its own model rather than fields bolted onto Diagnosis (flagged as
+    deferred back in docs/data-models.md), since feedback usually arrives
+    well after the diagnosis itself — a farmer can only say whether a
+    treatment helped once it's had days to take effect — and a diagnosis
+    could in principle receive more than one round of feedback.
+
+    FK to Diagnosis, not Scan: a scan can be re-diagnosed after a model
+    retrain (see Diagnosis's own docstring), and feedback is about a
+    specific prediction, not the photo itself.
+    """
+
+    class DiagnosisAccuracy(models.TextChoices):
+        CORRECT = "correct", "Diagnosis looked right"
+        INCORRECT = "incorrect", "Diagnosis looked wrong"
+        UNSURE = "unsure", "Not sure"
+
+    class TreatmentOutcome(models.TextChoices):
+        HELPED = "helped", "Treatment helped"
+        NO_CHANGE = "no_change", "No change yet"
+        WORSENED = "worsened", "Got worse"
+        NOT_APPLICABLE = "not_applicable", "No treatment applied"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    diagnosis = models.ForeignKey(
+        Diagnosis, on_delete=models.CASCADE, related_name="feedback_entries"
+    )
+    farmer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="feedback_entries"
+    )
+    diagnosis_accuracy = models.CharField(max_length=16, choices=DiagnosisAccuracy.choices)
+    treatment_outcome = models.CharField(
+        max_length=16, choices=TreatmentOutcome.choices, blank=True
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "feedback"
+
+    def __str__(self):
+        return f"Feedback on diagnosis {self.diagnosis_id}: {self.diagnosis_accuracy}"

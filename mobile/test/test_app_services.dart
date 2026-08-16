@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:agrisense_ai/app_services.dart';
+import 'package:agrisense_ai/models/feedback_record.dart';
 import 'package:agrisense_ai/models/mandi_price.dart';
 import 'package:agrisense_ai/models/scan_record.dart';
 import 'package:agrisense_ai/services/advisory_service.dart';
+import 'package:agrisense_ai/services/feedback_repository.dart';
 import 'package:agrisense_ai/services/inference_service.dart';
 import 'package:agrisense_ai/services/local_database.dart';
 import 'package:agrisense_ai/services/offline_sync_manager.dart';
@@ -48,6 +50,7 @@ Future<TestAppServicesResult> buildTestAppServices({
   );
   final backend = syncBackend ?? _NullSyncBackend();
   final syncManager = OfflineSyncManager(database: database, backend: backend);
+  final feedbackRepository = FeedbackRepository(database: database);
 
   final inferenceService = await InferenceService.load();
   final advisoryService = await AdvisoryService.load();
@@ -62,6 +65,7 @@ Future<TestAppServicesResult> buildTestAppServices({
     localDatabase: database,
     scanRepository: scanRepository,
     syncManager: syncManager,
+    feedbackRepository: feedbackRepository,
   );
 
   return TestAppServicesResult(services, tempDir);
@@ -91,4 +95,7 @@ class _NullPriceProvider implements PriceProvider {
 class _NullSyncBackend implements SyncBackend {
   @override
   Future<void> pushScan(ScanRecord scan, {required String deviceId}) async {}
+
+  @override
+  Future<void> pushFeedback(FeedbackRecord feedback) async {}
 }

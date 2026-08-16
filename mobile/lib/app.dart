@@ -7,6 +7,7 @@ import 'app_services.dart';
 import 'screens/home_screen.dart';
 import 'services/advisory_service.dart';
 import 'services/camera_photo_capture_source.dart';
+import 'services/feedback_repository.dart';
 import 'services/inference_service.dart';
 import 'services/local_database.dart';
 import 'services/offline_sync_manager.dart';
@@ -130,6 +131,7 @@ class _AppRootState extends State<_AppRoot> {
       database: database,
       backend: syncBackend,
     );
+    final feedbackRepository = FeedbackRepository(database: database);
 
     if (mounted) {
       await context.read<ScanHistoryProvider>().loadFromDatabase(database);
@@ -145,6 +147,7 @@ class _AppRootState extends State<_AppRoot> {
       localDatabase: database,
       scanRepository: scanRepository,
       syncManager: syncManager,
+      feedbackRepository: feedbackRepository,
     );
   }
 
