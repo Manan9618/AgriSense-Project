@@ -1,3 +1,13 @@
+@Tags(['tflite'])
+library;
+
+// Tagged 'tflite': every test here goes through buildTestAppServices(),
+// which always calls InferenceService.load() — a real dlopen of
+// tflite_flutter's native library. `flutter test` alone doesn't populate
+// that library on Linux (only a full desktop build does — found running
+// this in CI, see docs/adr/0017-dockerization-and-cicd.md and
+// mobile/README.md). CI excludes this tag.
+
 import 'package:agrisense_ai/models/feedback_record.dart';
 import 'package:agrisense_ai/models/scan_record.dart';
 import 'package:agrisense_ai/screens/home_screen.dart';

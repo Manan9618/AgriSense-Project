@@ -71,8 +71,12 @@ jobs:
       - run: flutter analyze
       # Live-backend tests (test/*_live_backend_test.dart) self-skip here —
       # no Django server is running in this job — same as any machine
-      # without one; see mobile/README.md.
-      - run: flutter test
+      # without one; see mobile/README.md. Tests tagged 'tflite'
+      # (inference_service_test.dart, home_screen_flow_test.dart) are
+      # excluded: `flutter test` alone doesn't populate tflite_flutter's
+      # native library on Linux (only a full desktop build does — found by
+      # actually running this job, see docs/adr/0017-dockerization-and-cicd.md).
+      - run: flutter test --exclude-tags=tflite
 
   docker-build:
     name: Docker build + smoke test

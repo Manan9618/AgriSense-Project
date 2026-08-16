@@ -26,8 +26,18 @@ flutter test
 The script copies the plugin's already-bundled macOS dylib into the Flutter SDK's cache where
 `flutter test`'s host runner looks for it — see the script and ADR 0006 for why. Without it,
 `flutter test` fails with `Failed to load dynamic library '...libtensorflowlite_c-mac.dylib'`. If
-you *do* have Xcode + CocoaPods set up (or you're on Linux/Windows CI, or running on a real
-device), you don't need this — the plugin resolves its native library normally.
+you *do* have Xcode + CocoaPods set up, you don't need this — the plugin resolves its native
+library normally.
+
+**Linux CI doesn't get this for free either** — an earlier version of this doc claimed it would,
+untested; running the actual CI job (Week 18) proved that wrong: `flutter test` alone doesn't
+populate `libtensorflowlite_c-linux.so` there any more than it populates the macOS dylib without
+the script above (only a full `flutter build linux`/`flutter run -d linux` desktop build does).
+Both files that need it (`inference_service_test.dart`, `home_screen_flow_test.dart`) are tagged
+`@Tags(['tflite'])`; CI runs `flutter test --exclude-tags=tflite` and everything else still runs
+for real. Run the full suite including those two locally (macOS with the setup script above, or
+any machine with a full desktop build) before considering an on-device-inference change verified —
+see `docs/adr/0017-dockerization-and-cicd.md`.
 
 ## What's tested vs. not
 

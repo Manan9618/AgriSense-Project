@@ -1,3 +1,14 @@
+@Tags(['tflite'])
+library;
+
+// Tagged 'tflite': dlopens tflite_flutter's real native library, which
+// `flutter test` alone doesn't populate on Linux (only a full
+// `flutter build linux`/`flutter run -d linux` does — found running this
+// in CI, see docs/adr/0017-dockerization-and-cicd.md and
+// mobile/README.md). CI excludes this tag; run locally with the macOS
+// setup script (mobile/scripts/setup_macos_test_lib.sh) or on a machine
+// with a full Linux/Windows desktop build.
+
 import 'dart:io';
 
 import 'package:agrisense_ai/services/inference_service.dart';
