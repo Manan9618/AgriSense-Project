@@ -21,6 +21,12 @@ class Command(BaseCommand):
     only moves data that already exists in Feedback rows — it never
     invents feedback, and produces an empty CSV until real farmer feedback
     (pilot or otherwise) exists.
+
+    The `corrected_class` column is left blank here on purpose — a human
+    reviewer fills it in (with a valid docs/classes.md class id) after
+    looking at the actual image, and only reviewed rows are picked up by
+    ml/scripts/incorporate_feedback.py (Week 16, see
+    docs/adr/0016-retraining-pipeline-mechanics.md).
     """
 
     help = "Export scans flagged as incorrectly diagnosed into a retraining-review CSV."
@@ -56,6 +62,7 @@ class Command(BaseCommand):
                     "model_version",
                     "farmer_notes",
                     "feedback_created_at",
+                    "corrected_class",
                 ]
             )
             for feedback in candidates:
@@ -71,6 +78,7 @@ class Command(BaseCommand):
                         diagnosis.model_version,
                         feedback.notes,
                         feedback.created_at.isoformat(),
+                        "",
                     ]
                 )
                 count += 1

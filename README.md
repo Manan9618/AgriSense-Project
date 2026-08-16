@@ -109,6 +109,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] 6 new backend tests (113 total) against fixture data, verifying the aggregation logic — not real pilot results
 - [ ] `docs/pilot/pilot-launch-readiness.md` lists what's still blocking an actual launch: a deployed backend (Week 18), confirmed coordinator training delivery, an assigned owner for the report
 
+### Week 16 — Mid-Pilot Iteration
+- [ ] **No real pilot-driven fixes** — there's no live pilot yet (Weeks 13/15 are still real-world activity this environment can't perform), so there's nothing real to iterate on
+- [x] Closed the mechanical loop the Week 12 retraining pipeline started: `export_retraining_candidates`'s CSV gained a blank `corrected_class` column for a human reviewer to fill in, and a new `ml/scripts/incorporate_feedback.py` merges reviewed rows into `ml/data/raw/<class>/`, the exact layout `prepare_dataset.py` already expects — see `docs/adr/0016-retraining-pipeline-mechanics.md`
+- [x] 6 new tests (`ml/scripts/tests/test_incorporate_feedback.py`, `ml/`'s first pytest coverage) against synthetic images, verifying merge/skip/idempotency mechanics — not real field photos
+- [ ] Actually re-running `train.py` on incorporated data is deliberately not automated and not done this week — deciding when there's enough real reviewed field data to justify a retrain is a call for whoever runs the pilot
+
 ## Backend quickstart
 
 ```bash
@@ -130,4 +136,8 @@ python scripts/download_dataset.py
 python scripts/prepare_dataset.py
 python scripts/train.py --run-name v1       # ~66 min on CPU (Apple M3)
 python scripts/evaluate.py --run-name v1
+
+# scripts that are pure mechanics rather than model training (Week 16+) have real test coverage:
+pip install -r requirements-dev.txt
+pytest scripts/tests/
 ```

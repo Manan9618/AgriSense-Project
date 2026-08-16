@@ -54,6 +54,9 @@ class ExportRetrainingCandidatesCommandTests(MediaIsolatedTestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["predicted_class"], "tomato_late_blight")
         self.assertIn("spots", rows[0]["farmer_notes"])
+        # Left blank for a human reviewer to fill in — see
+        # ml/scripts/incorporate_feedback.py (Week 16).
+        self.assertEqual(rows[0]["corrected_class"], "")
 
     def test_no_flagged_feedback_produces_an_empty_csv_not_an_error(self):
         Feedback.objects.create(
