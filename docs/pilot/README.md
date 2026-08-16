@@ -20,6 +20,8 @@ the material a coordinator or farmer would be handed:
 - **[village-selection-checklist.md](village-selection-checklist.md)** — the selection criteria
   and logistics questions that need real answers before a village is chosen, laid out as a
   checklist rather than filled in, since none of those answers exist yet.
+- **[pilot-launch-readiness.md](pilot-launch-readiness.md)** (Week 15) — what monitoring tooling
+  exists for an actual launch, and what's still blocking one from happening.
 
 ## What's explicitly not here
 

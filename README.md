@@ -103,6 +103,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] Mobile: `CommunityScreen` (list + ask-a-question) and `QuestionDetailScreen` (answers + reply), reachable from the bottom nav's Community tab and the "community" voice command — both previously placeholders since Week 4/8
 - [x] 19 new backend tests (107 total); 6 new mobile tests including a self-skipping live-backend one, run for real against `manage.py runserver` and passing genuinely (66 mobile tests total, 5 self-skipping)
 
+### Week 15 — Pilot Launch
+- [ ] **Not software** — an actual launch (real farmers, real villages) requires Week 13's recruitment/training to have happened first and cannot be performed or simulated here; see `docs/pilot/pilot-launch-readiness.md`
+- [x] `python manage.py pilot_usage_report`: summarizes real Scan/Diagnosis/Feedback/Question activity (counts, diagnosis-accuracy rate, treatment-helped rate, community activity) over a trailing window — reports honestly empty until real pilot usage exists, see `docs/adr/0015-pilot-launch-monitoring.md` for why this is a command and not a public dashboard endpoint (no auth system exists yet to gate one)
+- [x] 6 new backend tests (113 total) against fixture data, verifying the aggregation logic — not real pilot results
+- [ ] `docs/pilot/pilot-launch-readiness.md` lists what's still blocking an actual launch: a deployed backend (Week 18), confirmed coordinator training delivery, an assigned owner for the report
+
 ## Backend quickstart
 
 ```bash
