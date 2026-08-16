@@ -91,6 +91,11 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] `export_retraining_candidates` management command: a real, tested CSV export of feedback flagged "incorrect" for human review — the actual retraining pipeline is deliberately just this today, since no real pilot feedback exists yet (Weeks 13/15/16 are still ahead)
 - [x] 13 new backend tests (88 total); 10 new mobile tests across `local_database_test.dart`, `offline_sync_manager_test.dart`, a new `diagnosis_result_feedback_test.dart`, and a self-skipping `feedback_sync_backend_live_backend_test.dart` (60 mobile tests total, 4 self-skipping) — the live-backend ones were also run for real against a running `manage.py runserver` and pass genuinely, not just in the self-skip path
 
+### Week 13 — Pilot Logistics & Coordinator Training
+- [ ] **Not software** — this week's actual deliverable is real-world activity (recruiting pilot villages, selecting and training field coordinators) that requires physical presence and cannot be performed or simulated here; see `docs/pilot/README.md` for the explicit scope boundary
+- [x] What *can* be prepared in advance: `docs/pilot/coordinator-training-guide.md` (grounded in what the app actually does through Week 12, not the plan's aspirational description), `docs/pilot/farmer-onboarding-leaflet.md` (all 4 supported languages), and `docs/pilot/village-selection-checklist.md` (the questions that need real answers, deliberately left unanswered)
+- [ ] No village, coordinator, or farmer data — real or placeholder — has been added anywhere in this repo; that data belongs in a pilot-tracking system outside version control once it exists
+
 ## Backend quickstart
 
 ```bash
