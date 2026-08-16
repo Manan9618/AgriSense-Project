@@ -37,6 +37,7 @@ mobile/build/
 mobile/.pub-cache/
 mobile/.pub/
 mobile/*.iml
+mobile/coverage/
 
 # Environments / secrets
 .env

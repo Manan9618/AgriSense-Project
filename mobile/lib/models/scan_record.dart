@@ -32,17 +32,6 @@ class ScanRecord {
 
   bool get isSynced => syncedAt != null;
 
-  ScanRecord copyWith({DateTime? syncedAt}) {
-    return ScanRecord(
-      id: id,
-      imagePath: imagePath,
-      prediction: prediction,
-      capturedAt: capturedAt,
-      language: language,
-      syncedAt: syncedAt ?? this.syncedAt,
-    );
-  }
-
   DiseaseClassInfo get classInfo =>
       diseaseClasses[prediction.classId] ??
       const DiseaseClassInfo(

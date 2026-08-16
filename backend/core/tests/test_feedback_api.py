@@ -88,6 +88,22 @@ class FeedbackSyncViewTests(MediaIsolatedTestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Feedback.objects.count(), 0)
 
+    def test_feedback_for_a_scan_with_no_diagnosis_yet_is_rejected(self):
+        # A Scan without any Diagnosis shouldn't happen via the normal
+        # ScanSyncView flow (it always creates both together) — but
+        # FeedbackSyncView guards against it directly rather than trusting
+        # that invariant, so this exercises the guard itself.
+        bare_scan = make_scan(self.farmer)
+
+        response = self.client.post(
+            reverse("feedback-sync"),
+            feedback_payload(scan_id=str(bare_scan.id)),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Feedback.objects.count(), 0)
+
     def test_treatment_outcome_and_notes_are_optional(self):
         payload = feedback_payload(scan_id=str(self.scan.id))
         del payload["treatment_outcome"]

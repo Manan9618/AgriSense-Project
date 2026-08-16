@@ -3,3 +3,4 @@ ruff>=0.6
 black>=24.0
 pytest>=8
 pytest-django>=4.8
+coverage>=7

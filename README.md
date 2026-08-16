@@ -115,6 +115,12 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] 6 new tests (`ml/scripts/tests/test_incorporate_feedback.py`, `ml/`'s first pytest coverage) against synthetic images, verifying merge/skip/idempotency mechanics — not real field photos
 - [ ] Actually re-running `train.py` on incorporated data is deliberately not automated and not done this week — deciding when there's enough real reviewed field data to justify a retrain is a call for whoever runs the pilot
 
+### Week 17 — Comprehensive Testing Suite
+- [x] Backend: **98% coverage** (117 tests, `coverage.py`) — closed real gaps (the seed command's three `CommandError` guard paths, a feedback-sync defensive branch); remaining gap is boilerplate (`__str__` methods, abstract-base stubs)
+- [x] Mobile: **92.8% coverage** (89 tests, 5 self-skipping) measured with the live backend running, since several classes are only exercised by the live-backend tests by design — see `docs/testing-coverage.md` for why offline-only coverage reads lower (~76%) without that being a real gap
+- [x] Found and fixed two genuinely dead `copyWith()` methods (deleted, not tested-for-their-own-sake) and a real bug: Marathi voice commands silently never matched anything since Week 11 added the language without updating `voice_command_parser.dart`'s keyword map — both caught during the coverage sweep, not by a pre-existing test
+- [x] Full writeup: `docs/testing-coverage.md`, including a test-isolation bug the sweep itself ran into (an ambiguous `pumpUntilFound` finder that matched the wrong widget) and how it was fixed
+
 ## Backend quickstart
 
 ```bash

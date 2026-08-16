@@ -1,4 +1,7 @@
+import 'package:agrisense_ai/models/feedback_record.dart';
+import 'package:agrisense_ai/models/scan_record.dart';
 import 'package:agrisense_ai/screens/home_screen.dart';
+import 'package:agrisense_ai/services/sync_backend.dart';
 import 'package:agrisense_ai/state/language_provider.dart';
 import 'package:agrisense_ai/state/scan_history_provider.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +11,17 @@ import 'package:provider/provider.dart';
 import 'fake_photo_capture_source.dart';
 import 'fake_voice_command_source.dart';
 import 'test_app_services.dart';
+
+/// Always succeeds — used only to exercise HomeScreen's "Sync Now" happy
+/// path; failure-path behavior is already covered thoroughly against a
+/// real SQLite database in offline_sync_manager_test.dart.
+class _AlwaysSucceedsSyncBackend implements SyncBackend {
+  @override
+  Future<void> pushScan(ScanRecord scan, {required String deviceId}) async {}
+
+  @override
+  Future<void> pushFeedback(FeedbackRecord feedback) async {}
+}
 
 /// End-to-end widget test: tap "Capture Photo" -> fake camera returns a
 /// real held-out test image -> real on-device inference runs -> real
@@ -100,6 +114,13 @@ void main() {
         expect(find.text('Pepper (bell) — Healthy'), findsOneWidget);
         // The scan is now persisted (Week 9) and unsynced.
         expect(find.text('1 scan(s) waiting to sync'), findsOneWidget);
+
+        // Tapping it from Recent Scans reopens the same diagnosis (HomeScreen._openScan).
+        await tester.tap(find.text('Pepper (bell) — Healthy'));
+        await pumpUntilFound(tester, find.text('Diagnosis Result'));
+
+        expect(find.text('Diagnosis Result'), findsOneWidget);
+        expect(find.text('Pepper (bell)'), findsOneWidget);
       });
     },
   );
@@ -170,6 +191,111 @@ void main() {
       await pumpUntilFound(tester, find.text('Price Comparison'));
 
       expect(find.text('Price Comparison'), findsOneWidget);
+    });
+  });
+
+  testWidgets('saying "weather" shows a coming-soon message', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final built = await buildTestAppServices(
+        voiceCommandSource: const FakeVoiceCommandSource(
+          'what is the weather',
+        ),
+      );
+      addTearDown(built.services.inferenceService.close);
+      addTearDown(() => built.tempDir.delete(recursive: true));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LanguageProvider()),
+            ChangeNotifierProvider(create: (_) => ScanHistoryProvider()),
+          ],
+          child: MaterialApp(home: HomeScreen(services: built.services)),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.mic_none));
+      await pumpUntilFound(tester, find.text('Coming soon'));
+
+      expect(find.text('Coming soon'), findsOneWidget);
+    });
+  });
+
+  testWidgets('saying "community" navigates to the community screen', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final built = await buildTestAppServices(
+        voiceCommandSource: const FakeVoiceCommandSource(
+          'ask the community',
+        ),
+      );
+      addTearDown(built.services.inferenceService.close);
+      addTearDown(() => built.tempDir.delete(recursive: true));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LanguageProvider()),
+            ChangeNotifierProvider(create: (_) => ScanHistoryProvider()),
+          ],
+          child: MaterialApp(home: HomeScreen(services: built.services)),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.mic_none));
+      // Not find.text('Community') — that also matches the bottom nav's
+      // own tab label, already present on HomeScreen before navigation.
+      await pumpUntilFound(tester, find.text('Ask a Question'));
+
+      expect(find.text('Ask a Question'), findsOneWidget);
+    });
+  });
+
+  testWidgets('tapping Sync Now syncs pending scans and shows a summary', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final built = await buildTestAppServices(
+        photoCaptureSource: const FakePhotoCaptureSource(
+          'test/fixtures/sample_2_pepper_bell_healthy.jpg',
+        ),
+        syncBackend: _AlwaysSucceedsSyncBackend(),
+      );
+      addTearDown(built.services.inferenceService.close);
+      addTearDown(() => built.tempDir.delete(recursive: true));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LanguageProvider()),
+            ChangeNotifierProvider(create: (_) => ScanHistoryProvider()),
+          ],
+          child: MaterialApp(home: HomeScreen(services: built.services)),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('Capture Photo'));
+      await pumpUntilFound(tester, find.text('Diagnosis Result'));
+      await tester.pageBack();
+      await tester.pump();
+
+      expect(find.text('1 scan(s) waiting to sync'), findsOneWidget);
+
+      await tester.tap(find.text('Sync Now'));
+      // Checking the persistent sync-status text, not the SnackBar: the
+      // SnackBar auto-dismisses after a few seconds, which pumpUntilFound's
+      // own real-time polling can race past — "All scans synced" instead
+      // stays up once reached.
+      await pumpUntilFound(tester, find.text('All scans synced'));
+
+      expect(find.text('All scans synced'), findsOneWidget);
+      expect(find.text('0 scan(s) waiting to sync'), findsNothing);
     });
   });
 }

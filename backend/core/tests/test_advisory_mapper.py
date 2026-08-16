@@ -1,8 +1,13 @@
 import json
+import tempfile
+from contextlib import contextmanager
+from pathlib import Path
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase
 
 from core.advisory_mapper import NoRecommendationError, map_diagnosis_to_advisory
@@ -21,6 +26,28 @@ def _expected_languages() -> set[str]:
     data = json.loads(CONTENT_PATH.read_text())
     first_class = next(v for k, v in data.items() if not k.startswith("_"))
     return {k for k in first_class if k != "urgency"}
+
+
+def _fixture_content() -> dict:
+    """A minimal, valid content dict (every real class, one language) for
+    the seed command's error-path tests (Week 17) — deliberately not the
+    real content/treatment_recommendations.json, so these tests exercise
+    the command's own validation, not the real file's current shape."""
+    return {
+        class_id: {
+            "urgency": "low",
+            "en": {"title": f"{class_id} title", "instructions": f"{class_id} instructions"},
+        }
+        for class_id in DISEASE_CLASS_IDS
+    }
+
+
+@contextmanager
+def _content_file(data: dict):
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "content.json"
+        path.write_text(json.dumps(data))
+        yield path
 
 
 class SeedTreatmentRecommendationsCommandTests(TestCase):
@@ -45,6 +72,40 @@ class SeedTreatmentRecommendationsCommandTests(TestCase):
         call_command("seed_treatment_recommendations")
         expected_count = len(DISEASE_CLASS_IDS) * len(_expected_languages())
         self.assertEqual(TreatmentRecommendation.objects.count(), expected_count)
+
+    def test_raises_when_content_file_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            missing_path = Path(tmp) / "does_not_exist.json"
+            with (
+                patch(
+                    "core.management.commands.seed_treatment_recommendations.CONTENT_PATH",
+                    missing_path,
+                ),
+                self.assertRaisesMessage(CommandError, "not found"),
+            ):
+                call_command("seed_treatment_recommendations")
+
+    def test_raises_when_a_class_is_missing_from_the_content_file(self):
+        data = _fixture_content()
+        del data[DISEASE_CLASS_IDS[0]]
+
+        with (
+            _content_file(data) as path,
+            patch("core.management.commands.seed_treatment_recommendations.CONTENT_PATH", path),
+            self.assertRaisesMessage(CommandError, "Missing classes"),
+        ):
+            call_command("seed_treatment_recommendations")
+
+    def test_raises_when_language_coverage_is_inconsistent_across_classes(self):
+        data = _fixture_content()
+        data[DISEASE_CLASS_IDS[0]]["hi"] = {"title": "t", "instructions": "i"}
+
+        with (
+            _content_file(data) as path,
+            patch("core.management.commands.seed_treatment_recommendations.CONTENT_PATH", path),
+            self.assertRaisesMessage(CommandError, "Inconsistent language coverage"),
+        ):
+            call_command("seed_treatment_recommendations")
 
 
 class AdvisoryMapperTests(MediaIsolatedTestCase):

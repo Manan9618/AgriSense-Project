@@ -104,6 +104,36 @@ void main() {
     });
   });
 
+  group('Marathi', () {
+    test('recognizes scan commands', () {
+      expect(
+        parseVoiceCommand('स्कॅन करा', AppLanguage.marathi),
+        VoiceIntent.scan,
+      );
+    });
+
+    test('recognizes price commands', () {
+      expect(
+        parseVoiceCommand('भाव सांगा', AppLanguage.marathi),
+        VoiceIntent.prices,
+      );
+    });
+
+    test('recognizes weather commands', () {
+      expect(
+        parseVoiceCommand('हवामान कसे आहे', AppLanguage.marathi),
+        VoiceIntent.weather,
+      );
+    });
+
+    test('recognizes community commands', () {
+      expect(
+        parseVoiceCommand('समुदाय प्रश्न', AppLanguage.marathi),
+        VoiceIntent.community,
+      );
+    });
+  });
+
   group('edge cases', () {
     test('returns null for unrecognized speech', () {
       expect(parseVoiceCommand('good morning', AppLanguage.english), isNull);

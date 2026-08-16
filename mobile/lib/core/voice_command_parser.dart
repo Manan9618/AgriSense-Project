@@ -24,6 +24,17 @@ const Map<AppLanguage, Map<VoiceIntent, List<String>>> _keywords = {
     VoiceIntent.weather: ['હવામાન', 'વરસાદ'],
     VoiceIntent.community: ['સમુદાય', 'પ્રશ્ન'],
   },
+  // Added alongside Marathi as a supported language (Week 11, ADR 0012) —
+  // missed at the time and caught during the Week 17 coverage sweep:
+  // without this, a Marathi-speaking farmer's voice commands silently fell
+  // back to English keyword matching (see the `?? _keywords[English]`
+  // fallback below) and would rarely match.
+  AppLanguage.marathi: {
+    VoiceIntent.scan: ['स्कॅन', 'फोटो'],
+    VoiceIntent.prices: ['भाव', 'बाजार', 'मंडी'],
+    VoiceIntent.weather: ['हवामान', 'पाऊस'],
+    VoiceIntent.community: ['समुदाय', 'प्रश्न'],
+  },
 };
 
 /// Parses recognized speech into a navigation intent by keyword matching —

@@ -34,18 +34,6 @@ class FeedbackRecord {
   final DateTime? syncedAt;
 
   bool get isSynced => syncedAt != null;
-
-  FeedbackRecord copyWith({DateTime? syncedAt}) {
-    return FeedbackRecord(
-      id: id,
-      scanId: scanId,
-      diagnosisAccuracy: diagnosisAccuracy,
-      treatmentOutcome: treatmentOutcome,
-      notes: notes,
-      createdAt: createdAt,
-      syncedAt: syncedAt ?? this.syncedAt,
-    );
-  }
 }
 
 /// String constants matching backend Feedback.DiagnosisAccuracy choices —

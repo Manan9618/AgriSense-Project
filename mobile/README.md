@@ -52,13 +52,16 @@ device), you don't need this — the plugin resolves its native library normally
 
 ## Verifying against a real backend
 
-Two tests make genuine HTTP calls to a running Django dev server rather than mocking the network
-layer — the strongest verification available for the backend<->app integration (Weeks 7 and 9).
-Both self-skip if no server is reachable, so normal `flutter test` runs don't need one:
+Four tests make genuine HTTP calls to a running Django dev server rather than mocking the network
+layer — the strongest verification available for the backend<->app integration (Weeks 7, 9, 12,
+14). All self-skip if no server is reachable, so normal `flutter test` runs don't need one — but
+running `flutter test --coverage` *with* the server up is also how the mobile coverage numbers in
+`docs/testing-coverage.md` were measured, since these are otherwise the least-covered files in the
+app (see that doc for why):
 
 ```bash
-cd backend && source .venv/bin/activate && python manage.py migrate && python manage.py runserver 127.0.0.1:8000 &
-cd mobile && flutter test test/price_provider_live_backend_test.dart test/sync_backend_live_backend_test.dart
+cd backend && source .venv/bin/activate && python manage.py migrate && python manage.py seed_treatment_recommendations && python manage.py runserver 127.0.0.1:8000 &
+cd mobile && flutter test test/price_provider_live_backend_test.dart test/sync_backend_live_backend_test.dart test/feedback_sync_backend_live_backend_test.dart test/community_qa_provider_live_backend_test.dart
 ```
 
 ## Regenerating the bundled model
