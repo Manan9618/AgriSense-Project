@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.constants import DISEASE_CLASSES
+from core.constants import DISEASE_CLASSES, CropChoice, SymptomChoice
 from core.models import Feedback
 
 
@@ -37,6 +37,52 @@ class FeedbackSyncSerializer(serializers.Serializer):
         choices=Feedback.TreatmentOutcome.choices, required=False, default=""
     )
     notes = serializers.CharField(required=False, default="", allow_blank=True)
+
+
+class AnswerSerializer(serializers.Serializer):
+    """Output shape for one Answer, nested inside QuestionDetailSerializer
+    and returned directly by AnswerCreateView."""
+
+    id = serializers.UUIDField(read_only=True)
+    body = serializers.CharField()
+    is_auto_suggested = serializers.BooleanField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
+
+class QuestionSerializer(serializers.Serializer):
+    """Validates a new community Question (Week 14) and serializes existing
+    ones for the list view. `device_id` is write-only, same auto-provisioned
+    device-identity pattern as ScanSyncSerializer (Week 9) — no real farmer
+    accounts exist yet, see docs/adr/0010-offline-sync-architecture.md."""
+
+    id = serializers.UUIDField(read_only=True)
+    device_id = serializers.CharField(max_length=64, write_only=True)
+    crop = serializers.ChoiceField(
+        choices=CropChoice.choices, required=False, default="", allow_blank=True
+    )
+    symptom = serializers.ChoiceField(
+        choices=SymptomChoice.choices, required=False, default="", allow_blank=True
+    )
+    title = serializers.CharField(max_length=200)
+    body = serializers.CharField(required=False, default="", allow_blank=True)
+    language = serializers.CharField(max_length=10, default="en")
+    created_at = serializers.DateTimeField(read_only=True)
+
+
+class QuestionDetailSerializer(QuestionSerializer):
+    """QuestionSerializer plus its answers — the detail view's response
+    shape, and what QuestionListCreateView.post() returns right after
+    creating a question, so the client sees any auto-suggested answer
+    immediately without a second request."""
+
+    answers = AnswerSerializer(many=True, read_only=True)
+
+
+class AnswerCreateSerializer(serializers.Serializer):
+    """Validates a new reply to an existing Question."""
+
+    device_id = serializers.CharField(max_length=64, write_only=True)
+    body = serializers.CharField()
 
 
 class MandiPriceSerializer(serializers.Serializer):

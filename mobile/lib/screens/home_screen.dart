@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../app_services.dart';
 import '../core/voice_command_parser.dart';
 import '../models/scan_record.dart';
+import '../screens/community_screen.dart';
 import '../screens/price_comparison_screen.dart';
 import '../state/language_provider.dart';
 import '../state/scan_history_provider.dart';
@@ -118,8 +119,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         );
-      case VoiceIntent.weather:
       case VoiceIntent.community:
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CommunityScreen(
+              communityQAProvider: widget.services.communityQAProvider,
+              deviceId: widget.services.deviceId,
+            ),
+          ),
+        );
+      case VoiceIntent.weather:
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Coming soon')));
       case null:
@@ -244,6 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: AppBottomNav(
         strings: strings,
         priceProvider: widget.services.priceProvider,
+        communityQAProvider: widget.services.communityQAProvider,
+        deviceId: widget.services.deviceId,
       ),
     );
   }

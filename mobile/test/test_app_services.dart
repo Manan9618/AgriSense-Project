@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:agrisense_ai/app_services.dart';
+import 'package:agrisense_ai/models/community_question.dart';
 import 'package:agrisense_ai/models/feedback_record.dart';
 import 'package:agrisense_ai/models/mandi_price.dart';
 import 'package:agrisense_ai/models/scan_record.dart';
 import 'package:agrisense_ai/services/advisory_service.dart';
+import 'package:agrisense_ai/services/community_qa_provider.dart';
 import 'package:agrisense_ai/services/feedback_repository.dart';
 import 'package:agrisense_ai/services/inference_service.dart';
 import 'package:agrisense_ai/services/local_database.dart';
@@ -36,6 +38,7 @@ Future<TestAppServicesResult> buildTestAppServices({
   PriceProvider? priceProvider,
   VoiceCommandSource? voiceCommandSource,
   SyncBackend? syncBackend,
+  CommunityQAProvider? communityQAProvider,
 }) async {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
@@ -51,6 +54,7 @@ Future<TestAppServicesResult> buildTestAppServices({
   final backend = syncBackend ?? _NullSyncBackend();
   final syncManager = OfflineSyncManager(database: database, backend: backend);
   final feedbackRepository = FeedbackRepository(database: database);
+  final deviceId = await database.getOrCreateDeviceId();
 
   final inferenceService = await InferenceService.load();
   final advisoryService = await AdvisoryService.load();
@@ -66,6 +70,8 @@ Future<TestAppServicesResult> buildTestAppServices({
     scanRepository: scanRepository,
     syncManager: syncManager,
     feedbackRepository: feedbackRepository,
+    communityQAProvider: communityQAProvider ?? const _NullCommunityQAProvider(),
+    deviceId: deviceId,
   );
 
   return TestAppServicesResult(services, tempDir);
@@ -98,4 +104,37 @@ class _NullSyncBackend implements SyncBackend {
 
   @override
   Future<void> pushFeedback(FeedbackRecord feedback) async {}
+}
+
+class _NullCommunityQAProvider implements CommunityQAProvider {
+  const _NullCommunityQAProvider();
+
+  @override
+  Future<List<CommunityQuestion>> listQuestions({String? crop}) async => [];
+
+  @override
+  Future<CommunityQuestion> getQuestion(String id) {
+    throw CommunityQAException('not implemented in tests');
+  }
+
+  @override
+  Future<CommunityQuestion> postQuestion({
+    required String deviceId,
+    String crop = '',
+    String symptom = '',
+    required String title,
+    String body = '',
+    required String language,
+  }) {
+    throw CommunityQAException('not implemented in tests');
+  }
+
+  @override
+  Future<CommunityAnswer> postAnswer({
+    required String questionId,
+    required String deviceId,
+    required String body,
+  }) {
+    throw CommunityQAException('not implemented in tests');
+  }
 }

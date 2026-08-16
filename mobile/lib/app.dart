@@ -7,6 +7,7 @@ import 'app_services.dart';
 import 'screens/home_screen.dart';
 import 'services/advisory_service.dart';
 import 'services/camera_photo_capture_source.dart';
+import 'services/community_qa_provider.dart';
 import 'services/feedback_repository.dart';
 import 'services/inference_service.dart';
 import 'services/local_database.dart';
@@ -39,18 +40,23 @@ class AgriSenseApp extends StatelessWidget {
     PriceProvider? priceProvider,
     TtsService? ttsService,
     VoiceCommandSource? voiceCommandSource,
+    CommunityQAProvider? communityQAProvider,
     this.database,
     this.syncBackend,
   }) : priceProvider =
            priceProvider ?? HttpPriceProvider(baseUrl: _devBackendBaseUrl),
        ttsService = ttsService ?? TtsService(),
        voiceCommandSource =
-           voiceCommandSource ?? SpeechToTextVoiceCommandSource();
+           voiceCommandSource ?? SpeechToTextVoiceCommandSource(),
+       communityQAProvider =
+           communityQAProvider ??
+           HttpCommunityQAProvider(baseUrl: _devBackendBaseUrl);
 
   final PhotoCaptureSource photoCaptureSource;
   final PriceProvider priceProvider;
   final TtsService ttsService;
   final VoiceCommandSource voiceCommandSource;
+  final CommunityQAProvider communityQAProvider;
   final LocalDatabase? database;
   final SyncBackend? syncBackend;
 
@@ -69,6 +75,7 @@ class AgriSenseApp extends StatelessWidget {
           priceProvider: priceProvider,
           ttsService: ttsService,
           voiceCommandSource: voiceCommandSource,
+          communityQAProvider: communityQAProvider,
           database: database,
           syncBackend: syncBackend,
         ),
@@ -91,6 +98,7 @@ class _AppRoot extends StatefulWidget {
     required this.priceProvider,
     required this.ttsService,
     required this.voiceCommandSource,
+    required this.communityQAProvider,
     required this.database,
     required this.syncBackend,
   });
@@ -99,6 +107,7 @@ class _AppRoot extends StatefulWidget {
   final PriceProvider priceProvider;
   final TtsService ttsService;
   final VoiceCommandSource voiceCommandSource;
+  final CommunityQAProvider communityQAProvider;
   final LocalDatabase? database;
   final SyncBackend? syncBackend;
 
@@ -132,6 +141,7 @@ class _AppRootState extends State<_AppRoot> {
       backend: syncBackend,
     );
     final feedbackRepository = FeedbackRepository(database: database);
+    final deviceId = await database.getOrCreateDeviceId();
 
     if (mounted) {
       await context.read<ScanHistoryProvider>().loadFromDatabase(database);
@@ -148,6 +158,8 @@ class _AppRootState extends State<_AppRoot> {
       scanRepository: scanRepository,
       syncManager: syncManager,
       feedbackRepository: feedbackRepository,
+      communityQAProvider: widget.communityQAProvider,
+      deviceId: deviceId,
     );
   }
 

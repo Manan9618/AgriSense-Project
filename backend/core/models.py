@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-from core.constants import DISEASE_CLASSES, Urgency
+from core.constants import DISEASE_CLASSES, CropChoice, SymptomChoice, Urgency
 
 
 class Scan(models.Model):
@@ -224,3 +224,61 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Feedback on diagnosis {self.diagnosis_id}: {self.diagnosis_accuracy}"
+
+
+class Question(models.Model):
+    """A farmer's community question (Week 14, `CommunityQARouter` —
+    docs/classes.md).
+
+    `crop`/`symptom` are optional tags using the exact same vocabulary as
+    the SMS/voice fallback's crop+symptom menu (Week 10,
+    `fallback_diagnosis.py`) — deliberately not free text, so
+    `community_qa_router.route_question()` can look up an existing
+    `TreatmentRecommendation` deterministically instead of guessing from
+    prose. A question can still be posted with neither tag, for anything
+    that doesn't fit that triage (general farming questions, etc.) — it
+    just won't get an auto-suggested answer.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    farmer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="questions"
+    )
+    crop = models.CharField(max_length=16, choices=CropChoice.choices, blank=True)
+    symptom = models.CharField(max_length=16, choices=SymptomChoice.choices, blank=True)
+    title = models.CharField(max_length=200)
+    body = models.TextField(blank=True)
+    language = models.CharField(max_length=10, default="en")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Q: {self.title}"
+
+
+class Answer(models.Model):
+    """A reply to a Question — either from another farmer/coordinator
+    (`author` set), or auto-suggested by `CommunityQARouter` from existing
+    `TreatmentRecommendation` content the moment a crop+symptom-tagged
+    Question is created (`author` null, `is_auto_suggested=True`)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="answers",
+    )
+    body = models.TextField()
+    is_auto_suggested = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"A on question {self.question_id}"

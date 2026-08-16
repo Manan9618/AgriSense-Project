@@ -2,6 +2,7 @@ import os
 
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -13,6 +14,7 @@ from rest_framework.views import APIView
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
+from core.community_qa_router import route_question
 from core.fallback_diagnosis import (
     CROP_CHOICES,
     CROP_MENU_PROMPT,
@@ -21,10 +23,18 @@ from core.fallback_diagnosis import (
     class_for_choice,
     get_treatment_text,
 )
-from core.models import Diagnosis, Feedback, Scan
+from core.models import Answer, Diagnosis, Feedback, Question, Scan
 from core.price_comparator import compare_prices
 from core.price_provider import AgmarknetProvider, SampleMandiPriceProvider
-from core.serializers import FeedbackSyncSerializer, MandiPriceSerializer, ScanSyncSerializer
+from core.serializers import (
+    AnswerCreateSerializer,
+    AnswerSerializer,
+    FeedbackSyncSerializer,
+    MandiPriceSerializer,
+    QuestionDetailSerializer,
+    QuestionSerializer,
+    ScanSyncSerializer,
+)
 from core.sms_fallback_handler import handle_sms_message
 
 User = get_user_model()
@@ -158,6 +168,62 @@ class FeedbackSyncView(APIView):
             {"id": str(feedback.id), "created": created},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
+
+
+class QuestionListCreateView(APIView):
+    """GET /api/community/questions/ (optionally ?crop=potato) — newest
+    first. POST creates a Question (Week 14, CommunityQARouter —
+    docs/classes.md), auto-provisioning a device-based User the same way
+    ScanSyncView does, and immediately runs it through CommunityQARouter:
+    if `crop`/`symptom` resolve to known treatment content, the response
+    already includes that auto-suggested Answer — no second request
+    needed to see it.
+    """
+
+    def get(self, request: Request) -> Response:
+        questions = Question.objects.all()
+        crop = request.query_params.get("crop")
+        if crop:
+            questions = questions.filter(crop=crop)
+        serializer = QuestionSerializer(questions, many=True)
+        return Response(serializer.data)
+
+    def post(self, request: Request) -> Response:
+        serializer = QuestionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = dict(serializer.validated_data)
+        device_id = data.pop("device_id")
+
+        farmer, _ = User.objects.get_or_create(username=f"device-{device_id}")
+        question = Question.objects.create(farmer=farmer, **data)
+        route_question(question)
+
+        return Response(QuestionDetailSerializer(question).data, status=status.HTTP_201_CREATED)
+
+
+class QuestionDetailView(APIView):
+    """GET /api/community/questions/<id>/ — one question with its answers,
+    auto-suggested answer (if any) included alongside real replies."""
+
+    def get(self, request: Request, question_id) -> Response:
+        question = get_object_or_404(Question, id=question_id)
+        return Response(QuestionDetailSerializer(question).data)
+
+
+class AnswerCreateView(APIView):
+    """POST /api/community/questions/<id>/answers/ — a farmer's or
+    coordinator's reply to an existing question."""
+
+    def post(self, request: Request, question_id) -> Response:
+        question = get_object_or_404(Question, id=question_id)
+        serializer = AnswerCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        farmer, _ = User.objects.get_or_create(username=f"device-{data['device_id']}")
+        answer = Answer.objects.create(question=question, author=farmer, body=data["body"])
+
+        return Response(AnswerSerializer(answer).data, status=status.HTTP_201_CREATED)
 
 
 @csrf_exempt

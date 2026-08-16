@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../screens/community_screen.dart';
 import '../screens/price_comparison_screen.dart';
+import '../services/community_qa_provider.dart';
 import '../services/price_provider.dart';
 import '../state/app_language.dart';
 
 /// Bottom nav matching the sample UI (Section 6): Home/Weather/Prices/
-/// Community. Home and Prices are functional; Weather and Community are
-/// still "coming soon" — Weather stayed backend-only in Week 6 (no API
-/// endpoint yet, see docs/adr/0007), Community lands in Week 14.
+/// Community. Home, Prices, and Community are functional; Weather stayed
+/// backend-only in Week 6 (no API endpoint yet, see docs/adr/0007).
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
     super.key,
     required this.strings,
     required this.priceProvider,
+    required this.communityQAProvider,
+    required this.deviceId,
   });
 
   final AppStrings strings;
   final PriceProvider priceProvider;
-
-  static const _comingSoonWeek = {
-    1: 'Week 6 (backend only so far)',
-    3: 'Week 14',
-  };
+  final CommunityQAProvider communityQAProvider;
+  final String deviceId;
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +39,19 @@ class AppBottomNav extends StatelessWidget {
           );
           return;
         }
+        if (index == 3) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CommunityScreen(
+                communityQAProvider: communityQAProvider,
+                deviceId: deviceId,
+              ),
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Coming in ${_comingSoonWeek[index]}')),
+          const SnackBar(content: Text('Coming in Week 6 (backend only so far)')),
         );
       },
       items: [

@@ -32,3 +32,22 @@ DISEASE_CLASSES = [
 ]
 
 DISEASE_CLASS_IDS = [class_id for class_id, _ in DISEASE_CLASSES]
+
+
+class CropChoice(models.TextChoices):
+    """Same crop vocabulary as fallback_diagnosis.py's CROP_CHOICES values
+    (Week 10) — reused by Question (Week 14) so CommunityQARouter can look
+    up SYMPTOM_TO_CLASS directly instead of a separate mapping."""
+
+    POTATO = "potato", "Potato"
+    PEPPER_BELL = "pepper_bell", "Pepper (bell)"
+    TOMATO = "tomato", "Tomato"
+
+
+class SymptomChoice(models.TextChoices):
+    """Same symptom vocabulary as fallback_diagnosis.py's SYMPTOM_CHOICES
+    values (Week 10)."""
+
+    SPOTS = "spots", "Spots / blight on leaves"
+    WILTING = "wilting", "Wilting or fast-spreading damage"
+    HEALTHY = "healthy", "Looks healthy"

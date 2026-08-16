@@ -112,6 +112,17 @@ class AppStrings {
     'feedbackNotesHint': 'Additional notes (optional)',
     'submitFeedback': 'Submit',
     'feedbackThanks': 'Thank you for your feedback',
+    'askQuestion': 'Ask a Question',
+    'communityNoQuestions': 'No questions yet — be the first to ask.',
+    'questionTitleHint': "What's your question?",
+    'questionDetailsHint': 'More details (optional)',
+    'cropOptional': 'Crop (optional)',
+    'symptomOptional': 'What does it look like? (optional)',
+    'post': 'Post',
+    'answers': 'Answers',
+    'noAnswersYet': 'No answers yet.',
+    'autoSuggested': 'Automated suggestion',
+    'writeAnswerHint': 'Write a reply…',
   };
 
   static const _hi = {
@@ -168,6 +179,17 @@ class AppStrings {
     'feedbackNotesHint': 'अतिरिक्त टिप्पणी (वैकल्पिक)',
     'submitFeedback': 'भेजें',
     'feedbackThanks': 'आपकी प्रतिक्रिया के लिए धन्यवाद',
+    'askQuestion': 'सवाल पूछें',
+    'communityNoQuestions': 'अभी तक कोई सवाल नहीं — सबसे पहले आप पूछें।',
+    'questionTitleHint': 'आपका सवाल क्या है?',
+    'questionDetailsHint': 'अधिक जानकारी (वैकल्पिक)',
+    'cropOptional': 'फसल (वैकल्पिक)',
+    'symptomOptional': 'यह कैसा दिखता है? (वैकल्पिक)',
+    'post': 'भेजें',
+    'answers': 'जवाब',
+    'noAnswersYet': 'अभी तक कोई जवाब नहीं।',
+    'autoSuggested': 'स्वचालित सुझाव',
+    'writeAnswerHint': 'जवाब लिखें…',
   };
 
   static const _gu = {
@@ -224,6 +246,17 @@ class AppStrings {
     'feedbackNotesHint': 'વધારાની નોંધ (વૈકલ્પિક)',
     'submitFeedback': 'મોકલો',
     'feedbackThanks': 'તમારા પ્રતિભાવ બદલ આભાર',
+    'askQuestion': 'સવાલ પૂછો',
+    'communityNoQuestions': 'હજુ કોઈ સવાલ નથી — સૌથી પહેલા તમે પૂછો.',
+    'questionTitleHint': 'તમારો સવાલ શું છે?',
+    'questionDetailsHint': 'વધુ વિગતો (વૈકલ્પિક)',
+    'cropOptional': 'પાક (વૈકલ્પિક)',
+    'symptomOptional': 'તે કેવું દેખાય છે? (વૈકલ્પિક)',
+    'post': 'મોકલો',
+    'answers': 'જવાબો',
+    'noAnswersYet': 'હજુ કોઈ જવાબ નથી.',
+    'autoSuggested': 'સ્વયંસંચાલિત સૂચન',
+    'writeAnswerHint': 'જવાબ લખો…',
   };
 
   static const _mr = {
@@ -280,6 +313,17 @@ class AppStrings {
     'feedbackNotesHint': 'अतिरिक्त टीप (ऐच्छिक)',
     'submitFeedback': 'पाठवा',
     'feedbackThanks': 'तुमच्या अभिप्रायाबद्दल धन्यवाद',
+    'askQuestion': 'प्रश्न विचारा',
+    'communityNoQuestions': 'अजून कोणतेही प्रश्न नाहीत — सर्वप्रथम तुम्ही विचारा.',
+    'questionTitleHint': 'तुमचा प्रश्न काय आहे?',
+    'questionDetailsHint': 'अधिक तपशील (ऐच्छिक)',
+    'cropOptional': 'पीक (ऐच्छिक)',
+    'symptomOptional': 'ते कसे दिसते? (ऐच्छिक)',
+    'post': 'पाठवा',
+    'answers': 'उत्तरे',
+    'noAnswersYet': 'अजून कोणतेही उत्तर नाही.',
+    'autoSuggested': 'स्वयंचलित सूचना',
+    'writeAnswerHint': 'उत्तर लिहा…',
   };
 
   static const Map<AppLanguage, AppStrings> _byLanguage = {

@@ -96,6 +96,13 @@ docs/       Class list, data model notes, ADRs, dataset card
 - [x] What *can* be prepared in advance: `docs/pilot/coordinator-training-guide.md` (grounded in what the app actually does through Week 12, not the plan's aspirational description), `docs/pilot/farmer-onboarding-leaflet.md` (all 4 supported languages), and `docs/pilot/village-selection-checklist.md` (the questions that need real answers, deliberately left unanswered)
 - [ ] No village, coordinator, or farmer data — real or placeholder — has been added anywhere in this repo; that data belongs in a pilot-tracking system outside version control once it exists
 
+### Week 14 — Community Q&A
+- [x] `Question`/`Answer` models (`backend/core/models.py`) — questions optionally tagged with the same crop/symptom vocabulary the SMS fallback (Week 10) already uses, not free text
+- [x] `CommunityQARouter` (`backend/core/community_qa_router.py`): when a question's tags resolve to a known class, immediately posts the matching `TreatmentRecommendation` as an auto-suggested answer, reusing Week 10's `SYMPTOM_TO_CLASS`/`get_treatment_text` directly — see `docs/adr/0014-community-qa-router.md`
+- [x] `GET`/`POST /api/community/questions/`, `GET /api/community/questions/<id>/`, `POST /api/community/questions/<id>/answers/` — same device-based identity as scan/feedback sync
+- [x] Mobile: `CommunityScreen` (list + ask-a-question) and `QuestionDetailScreen` (answers + reply), reachable from the bottom nav's Community tab and the "community" voice command — both previously placeholders since Week 4/8
+- [x] 19 new backend tests (107 total); 6 new mobile tests including a self-skipping live-backend one, run for real against `manage.py runserver` and passing genuinely (66 mobile tests total, 5 self-skipping)
+
 ## Backend quickstart
 
 ```bash

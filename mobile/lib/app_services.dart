@@ -1,4 +1,5 @@
 import 'services/advisory_service.dart';
+import 'services/community_qa_provider.dart';
 import 'services/feedback_repository.dart';
 import 'services/inference_service.dart';
 import 'services/local_database.dart';
@@ -24,6 +25,8 @@ class AppServices {
     required this.scanRepository,
     required this.syncManager,
     required this.feedbackRepository,
+    required this.communityQAProvider,
+    required this.deviceId,
   });
 
   final InferenceService inferenceService;
@@ -44,4 +47,13 @@ class AppServices {
 
   /// Week 12: FeedbackCollector's local-write side (docs/classes.md).
   final FeedbackRepository feedbackRepository;
+
+  /// Week 14: Community Q&A (docs/classes.md, CommunityQARouter).
+  final CommunityQAProvider communityQAProvider;
+
+  /// Same device-based identity LocalDatabase already generates for sync
+  /// (Week 9) — reused here so a question/answer's author is the same
+  /// identity a farmer's scans sync under, rather than inventing a second
+  /// identity scheme for one feature.
+  final String deviceId;
 }

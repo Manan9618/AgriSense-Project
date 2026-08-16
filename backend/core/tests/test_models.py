@@ -6,7 +6,15 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from core.constants import DISEASE_CLASS_IDS, Urgency
-from core.models import Advisory, Diagnosis, Feedback, Scan, TreatmentRecommendation
+from core.models import (
+    Advisory,
+    Answer,
+    Diagnosis,
+    Feedback,
+    Question,
+    Scan,
+    TreatmentRecommendation,
+)
 from core.tests.helpers import MediaIsolatedTestCase, make_scan
 
 User = get_user_model()
@@ -158,6 +166,32 @@ class FeedbackModelTests(MediaIsolatedTestCase):
             diagnosis_accuracy=Feedback.DiagnosisAccuracy.INCORRECT,
         )
         self.assertEqual(list(Feedback.objects.all()), [newer, older])
+
+
+class QuestionAnswerModelTests(MediaIsolatedTestCase):
+    def setUp(self):
+        self.farmer = User.objects.create_user(username="farmer7", password="x")
+
+    def test_crop_and_symptom_are_optional(self):
+        question = Question.objects.create(farmer=self.farmer, title="General question")
+        self.assertEqual(question.crop, "")
+        self.assertEqual(question.symptom, "")
+
+    def test_questions_ordered_newest_first(self):
+        older = Question.objects.create(farmer=self.farmer, title="Older")
+        newer = Question.objects.create(farmer=self.farmer, title="Newer")
+        self.assertEqual(list(Question.objects.all()), [newer, older])
+
+    def test_answer_can_have_no_author(self):
+        question = Question.objects.create(farmer=self.farmer, title="Q")
+        answer = Answer.objects.create(question=question, body="auto reply", is_auto_suggested=True)
+        self.assertIsNone(answer.author)
+
+    def test_answers_ordered_oldest_first(self):
+        question = Question.objects.create(farmer=self.farmer, title="Q")
+        first = Answer.objects.create(question=question, body="first reply")
+        second = Answer.objects.create(question=question, body="second reply")
+        self.assertEqual(list(question.answers.all()), [first, second])
 
 
 class TreatmentRecommendationModelTests(TestCase):
